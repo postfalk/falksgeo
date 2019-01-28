@@ -23,7 +23,7 @@ def create_shapefile(name='test.shp', rows=5, columns=6):
     """
     crs = fiona.crs.from_epsg(4326)
     data = []
-    cols = ['one', 'two', 'three', 'four', 'five', 'six', 'seven'][0:columns]
+    cols = ['one', 'two', 'THREE', 'four', 'five', 'six', 'seven'][0:columns]
     schema = {'geometry': 'Point', 'properties': {k: 'str' for k in cols}}
     schema['properties']['number'] = 'int'
     kwargs = {'driver': 'ESRI Shapefile', 'schema': schema, 'crs': crs}
@@ -70,7 +70,7 @@ class TestCopyLayer(TestCase):
             self.assertEqual(len(collection[1]['properties']), 7)
 
     def test_subset_cols(self):
-        fields = ['one', 'three', 'four']
+        fields = ['one', 'THREE', 'four']
         shapefile.copy_layer(
             self.shapefile, self.outfile, fields=fields)
         with fiona.open(self.outfile) as collection:
@@ -89,7 +89,7 @@ class TestCopyLayer(TestCase):
              self.shapefile, self.outfile, remap_function=remap)
         with fiona.open(self.outfile) as collection:
             self.assertEqual(len(collection), 5)
-            fields = ['one', 'zwei', 'three', 'four', 'five', 'six', 'number']
+            fields = ['one', 'zwei', 'THREE', 'four', 'five', 'six', 'number']
             for field in fields:
                 self.assertIn(field, collection[4]['properties'])
             self.assertNotIn('two', collection[0]['properties'])
@@ -104,3 +104,8 @@ class TestCopyLayer(TestCase):
             self.assertEqual(len(collection), 2)
             for item in collection:
                 self.assertIn(item['properties']['number'], [1, 3])
+
+    def test_limit(self):
+        shapefile.copy_layer(self.shapefile, self.outfile, limit=2)
+        with fiona.open(self.outfile) as res:
+            self.assertEqual(len([item for item in res]), 2)

@@ -45,14 +45,14 @@ def create_remap(attributes):
 def copy_layer(
         inputname, outputname, append=False, remap_function=empty,
         filter_function=empty_filter, filter_kwargs={},
-        fields=None, debug=None, layer=None
+        fields=None, layer=None, limit=None
 ):
     """
     Copy, remap, and filter a shapefile
     """
     print(inputname, '=>', outputname)
     with fiona.open(inputname, layer=layer) as collection:
-        percentage = PercentDisplay(collection, debug=debug)
+        percentage = PercentDisplay(collection, limit=limit)
         schema = remap_function(collection.schema.copy())
         schema = select_fields(schema.copy(), fields)
         write_mode = 'a' if append else 'w'
