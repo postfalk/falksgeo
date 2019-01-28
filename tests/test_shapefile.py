@@ -6,9 +6,9 @@ import random
 import string
 import fiona
 import fiona.crs
-from utils import shapefile
 from shapely.geometry import shape, Point
-from utils.files import ensure_directory
+from falksgeo import shapefile
+from falksgeo.files import ensure_directory
 
 
 logging.getLogger('Fiona').setLevel(logging.WARNING)

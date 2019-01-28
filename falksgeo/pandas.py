@@ -3,7 +3,7 @@ Functions requiring Pandas or GeoPandas
 """
 import geopandas
 import pandas as pd
-from utils.transformations import camel_to_snake
+from .transformations import camel_to_snake
 
 
 def normalize_pandas_cols(df):
