@@ -1,0 +1,79 @@
+"""
+Utils to interact with ArcGIS online
+"""
+import os
+from getpass import getpass
+import sys
+import arcgis
+from arcgis.features import FeatureLayerCollection
+from utils.display import print_docstring
+import config
+
+
+def get_gis(portal, user):
+    """
+    Connect to GIS portal
+    """
+    password = os.environ.get('GIS_PASSWORD')
+    if not password:
+        print(
+            'You may set the environmental variable GIS_PASSWORD for '
+            'convenience')
+        password = getpass('Password for {}@{}: '.format(user, portal))
+    try:
+        gis = arcgis.gis.GIS(portal, user, password)
+    except RuntimeError:
+        print('\nCould not connect to GIS\n')
+        sys.exit(1)
+    print('\nConnected: {}\n'.format(gis))
+    return gis
+
+
+def exact_find(gis, name, typ):
+    """
+    The ArcGIS online search function picks up inexact matches. Double-check
+    whether we are getting the right item
+    """
+    res = gis.content.search('title: {}'.format(name), typ)
+    for item in res:
+        if item.title == name:
+            return item
+
+
+@print_docstring
+def publish(zipfile, gis):
+    """
+    Push layer to ArcgisOnline
+    """
+    folder = 'nhdv2'
+    gis.content.create_folder(folder)
+    name = os.path.split(zipfile)[1].replace('.zip', '')
+    shapefile = exact_find(gis, name, 'Shapefile')
+    if not shapefile:
+        item_properties = {'title': name}
+        shapefile = gis.content.add(
+            item_properties, zipfile, folder=folder)
+        print('Shapefile {} created'.format(shapefile))
+        # Don't use overwrite argument, it behaves very funny
+        service = shapefile.publish()
+        print('Shapefile {} published'.format(shapefile))
+    else:
+        service = exact_find(gis, name, 'Feature Layer')
+        print(service)
+        layer = FeatureLayerCollection.fromitem(service)
+        layer.manager.overwrite(zipfile)
+        print('Feature Layer {} updated with {}'.format(service, shapefile))
+    service.share(everyone=True)
+    print('Service {} shared with everyone'.format(service))
+
+
+def style_ago(gis, item, style):
+    """
+    Style feature with name item
+    """
+    service = exact_find(gis, item, 'Feature ')
+    print('\nStyle {}'.format(service))
+    layer = FeatureLayerCollection.fromitem(service)
+    layer.layers[0].manager.update_definition(style)
+    # add some standard definitions to make the layer safe
+    layer.manager.update_definition(config.DEFAULT_AGO_LAYER_CONFIG)
