@@ -14,6 +14,7 @@ setup(
     install_requires=[
         'Fiona==1.8.4',
         'rasterio==1.0.15',
-        'geopandas==0.4.0'
+        'geopandas==0.4.0',
+        'earthengine-api==0.1.164'
     ]
 )

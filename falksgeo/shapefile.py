@@ -130,9 +130,27 @@ def annotate(infile, annotation_files, outfile, index='comid', use=[]):
 
 @print_docstring
 def annotate_file(infile, annotationfile, outfile, index='comid'):
+    """
+    Annotate attributes from one file by another using index
+    """
     df = geopandas.read_file(infile)
     df.set_index(index)
     df[index] = df[index].apply(int)
     attributes = pd.read_csv(annotationfile, index_col=0)
     ndf = df.merge(attributes, on=index, how='left')
     ndf.to_file(outfile, driver='ESRI Shapefile')
+
+
+def gdb_to_shp(source_path, dest_path, layer=None):
+    """
+    Extract Shapefile from GDB
+    """
+    if not layer:
+        return
+    ensure_directories(os.path.split(dest_path)[0])
+    with fiona.open(source_path, layer=layer) as collection:
+        meta = collection.meta
+        meta['driver'] = 'ESRI Shapefile'
+        with fiona.open(dest_path, 'w', **meta) as shp:
+            for item in collection:
+                shp.write(item)
