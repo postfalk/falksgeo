@@ -76,7 +76,7 @@ def get_assets(list_of_assets):
     try:
         for ds in list_of_assets:
             check_or_create_files(
-                getattr(config, ds[0]), getattr(config, ds[1]),
-                create_function=ds[2], create_kwargs=get_from_tuple(ds, 3))
+                ds[0], ds[1]), create_function=ds[2],
+                create_kwargs=get_from_tuple(ds, 3))
     except CreationError:
         print('Dataset MISSING and creation FAILED\n')
