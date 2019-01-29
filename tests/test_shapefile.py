@@ -1,6 +1,6 @@
 from unittest import TestCase
-import logging
 import os
+import sys
 import shutil
 import random
 import string
@@ -9,9 +9,6 @@ import fiona.crs
 from shapely.geometry import shape, Point
 from falksgeo import shapefile
 from falksgeo.files import ensure_directory
-
-
-logging.getLogger('Fiona').setLevel(logging.WARNING)
 
 
 TMP_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'testdata'))
@@ -109,3 +106,28 @@ class TestCopyLayer(TestCase):
         shapefile.copy_layer(self.shapefile, self.outfile, limit=2)
         with fiona.open(self.outfile) as res:
             self.assertEqual(len([item for item in res]), 2)
+
+
+class TestCSVToShapefile(TestCase):
+
+    def setUp(self):
+        ensure_directory(TMP_FOLDER)
+        self.csv_fn = os.path.join(TMP_FOLDER, 'test.csv')
+        self.shp_fn = os.path.join(TMP_FOLDER, 'res.shp')
+        with open(self.csv_fn, 'w') as csv:
+            csv.write('name,x,y\nlittle house,-125,25\nbig house,-125.1,25')
+
+    def tearDown(self):
+        shutil.rmtree(TMP_FOLDER)
+
+    def test_csv_to_shapefile(self):
+        shapefile.csv_to_shapefile(self.csv_fn, self.shp_fn)
+        with fiona.open(self.shp_fn) as collection:
+            self.assertEqual(len(collection), 2)
+            self.assertEqual(
+                collection.schema, {
+                    'geometry': 'Point',
+                    'properties': {'name': 'str:80'}})
+            self.assertEqual(collection.driver, 'ESRI Shapefile')
+            self.assertEqual(collection.crs, {'init': 'epsg:4326'})
+
