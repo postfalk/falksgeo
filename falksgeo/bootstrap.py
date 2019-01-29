@@ -57,3 +57,26 @@ def check_or_create_files(
         if not os.path.isfile(file_path):
             raise CreationError('{} MISSING'.format(file_path))
     print('{} AVAILABLE'.format(file_path))
+
+
+def get_from_tuple(tpl, idx):
+    try:
+        return tpl[idx]
+    except IndexError:
+        pass
+
+
+def get_assets(list_of_assets):
+    """
+    Tries to download and install data sources for a project.
+
+    Args:
+        list_of_assets: list of tuple(source_str, dest_str, str or function)
+    """
+    try:
+        for ds in datasets:
+            check_or_create_files(
+                getattr(config, ds[0]), getattr(config, ds[1]),
+                create_function=ds[2], create_kwargs=get_from_tuple(ds, 3))
+    except CreationError:
+        print('Dataset MISSING and creation FAILED\n')
