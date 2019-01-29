@@ -74,7 +74,7 @@ def get_assets(list_of_assets):
         list_of_assets: list of tuple(source_str, dest_str, str or function)
     """
     try:
-        for ds in datasets:
+        for ds in list_of_assets:
             check_or_create_files(
                 getattr(config, ds[0]), getattr(config, ds[1]),
                 create_function=ds[2], create_kwargs=get_from_tuple(ds, 3))
