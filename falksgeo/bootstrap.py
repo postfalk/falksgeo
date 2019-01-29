@@ -9,7 +9,7 @@ from zipfile import ZipFile
 import requests
 from tqdm import tqdm
 # project
-from .shapefile import gdb_to_shp
+from .shapefile import gdb_to_shp, csv_to_shp
 from .files import ensure_directory
 from . import bootstrap
 

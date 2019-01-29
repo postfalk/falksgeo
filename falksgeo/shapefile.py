@@ -4,7 +4,9 @@ Utils for shapefile manipulation
 
 from collections import OrderedDict
 from copy import deepcopy
+from csv import DictReader
 import fiona
+from shapely.geometry import Point, mapping
 import geopandas
 import pandas as pd
 from .display import PercentDisplay, print_docstring
@@ -154,3 +156,28 @@ def gdb_to_shp(source_path, dest_path, layer=None):
         with fiona.open(dest_path, 'w', **meta) as shp:
             for item in collection:
                 shp.write(item)
+
+
+def csv_to_shp(
+    source_path, dest_path, x_field='x', y_field='y', crs='epsg:4326'
+):
+    """
+    Convert a point csv with x and y coordinates into a shapefile
+    """
+    print('Converting {} into a shapefile'.format(source_path))
+    with open(source_path) as src:
+        reader = DictReader(src)
+        property_names = reader.fieldnames.copy()
+        [property_names.remove(item) for item in [x_field, y_field]]
+        schema = {
+            'geometry': 'Point',
+            'properties': {item:'str' for item in property_names}}
+        meta = {'driver': 'ESRI Shapefile', 'crs': crs, 'schema': schema}
+        with fiona.open(dest_path, 'w', **meta) as shp:
+            for item in reader:
+                geometry = mapping(
+                    Point(float(item.pop(x_field)),
+                          float(item.pop(y_field))))
+                shp.write({
+                    'geometry': geometry,
+                    'properties': item})
