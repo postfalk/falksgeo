@@ -15,6 +15,8 @@ setup(
         'Fiona==1.8.4',
         'rasterio==1.0.15',
         'geopandas==0.4.0',
-        'earthengine-api==0.1.164'
+        'earthengine-api==0.1.164',
+        'requests==2.21',
+        'tqdm==4.30'
     ]
 )
