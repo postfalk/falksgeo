@@ -13,9 +13,10 @@ setup(
     zip_safe=False,
     install_requires=[
         'Fiona==1.8.4',
-        'rasterio==1.0.15',
         'geopandas==0.4.0',
         'earthengine-api==0.1.164',
+        'oauth2client==4.1.3',
+        'rasterio==1.0.15',
         'requests==2.21',
         'tqdm==4.30'
     ]

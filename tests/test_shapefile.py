@@ -11,7 +11,7 @@ from falksgeo import shapefile
 from falksgeo.files import ensure_directory
 
 
-TMP_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'testdata'))
+TMP_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'testres'))
 
 
 def create_shapefile(name='test.shp', rows=5, columns=6):
