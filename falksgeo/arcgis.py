@@ -41,12 +41,12 @@ def exact_find(gis, name, typ):
 
 
 @print_docstring
-def publish(zipfile, gis):
+def publish(zipfile, gis, folder=None):
     """
     Push layer to ArcgisOnline
     """
-    folder = 'nhdv2'
-    gis.content.create_folder(folder)
+    if folder:
+        gis.content.create_folder(folder)
     name = os.path.split(zipfile)[1].replace('.zip', '')
     shapefile = exact_find(gis, name, 'Shapefile')
     if not shapefile:
