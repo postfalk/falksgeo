@@ -79,24 +79,3 @@ def ensure_directory(directory, empty=False):
         if not os.path.isdir(directory):
             print('File exist but not a directory')
             sys.exit(1)
-
-
-@print_docstring
-def zip_shp(shp_name):
-    """
-    Zip shapefile for upload, creates shapefile.zip in same location
-    as shapefile.shp
-    """
-    if not re.match('^.*.shp$', shp_name):
-        print(shp_name, ': Incorrect file extension\n', sep='')
-        sys.exit(1)
-    snippet = shp_name[:-4]
-    zipfile = '.'.join([snippet, 'zip'])
-    files = glob.glob(snippet + '*')
-    files = (item for item in files if not '.zip' in item)
-    with ZipFile(zipfile, 'w') as zip:
-        for fil in files:
-            print(fil)
-            zip.write(fil)
-    print(zipfile, 'created')
-    return zipfile

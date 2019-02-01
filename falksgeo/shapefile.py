@@ -1,10 +1,12 @@
 """
 Utils for shapefile manipulation
 """
-
+import os
+import re
 from collections import OrderedDict
 from copy import deepcopy
 from csv import DictReader
+from zipfile import ZipFile
 import fiona
 from shapely.geometry import Point, mapping
 import geopandas
@@ -183,3 +185,22 @@ def csv_to_shp(
                 shp.write({
                     'geometry': geometry,
                     'properties': item})
+
+
+@print_docstring
+def zip_shp(shp_name):
+    """
+    Zip shapefile including all components.
+    """
+    if not re.match('^.*.shp$', shp_name):
+        raise ValueError('{}: Incorrect file extension'.format(shp_name))
+    if not os.path.isfile(shp_name):
+        raise FileNotFoundError
+    snippet = shp_name[:-4]
+    zipfilename = '.'.join([snippet, 'zip'])
+    with ZipFile(zipfilename, 'w') as zipf:
+        for item in ['shp', 'shx', 'proj', 'dbf', 'prj', 'shp.xml']:
+            fn = '.'.join([snippet, item])
+            if os.path.isfile(fn):
+                zipf.write(fn, os.path.basename(fn))
+    return zipfilename

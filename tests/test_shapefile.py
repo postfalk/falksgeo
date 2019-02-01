@@ -3,6 +3,7 @@ import sys
 import shutil
 import random
 import string
+from zipfile import ZipFile
 import fiona
 import fiona.crs
 from shapely.geometry import shape, Point
@@ -140,3 +141,19 @@ class TestCSVToShapefile(DirectoryTestCase):
                     'properties': {'name': 'str:80'}})
             self.assertEqual(collection.driver, 'ESRI Shapefile')
             self.assertEqual(collection.crs, {'init': 'epsg:4326'})
+
+
+class TestZipShapefile(DirectoryTestCase):
+
+    def moreSetUp(self):
+        self.shp = os.path.join(TEST_RES_DIR, 'forzipping.shp')
+        create_shapefile(self.shp)
+
+    def test_zip_shapefile(self):
+        zipfilename = shapefile.zip_shp(self.shp)
+        self.assertEqual(
+            zipfilename, os.path.join(TEST_RES_DIR, 'forzipping.zip'))
+        with ZipFile(zipfilename) as zipf:
+            for item in ['dbf', 'shp', 'prj', 'shx']:
+                name = '.'.join([os.path.basename(self.shp)[:-4], item])
+                self.assertIn(name, zipf.namelist())
