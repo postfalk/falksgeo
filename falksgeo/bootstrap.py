@@ -9,7 +9,10 @@ from zipfile import ZipFile
 import requests
 from tqdm import tqdm
 # project
+# these imports make it possible to refer to them in
+# configuration files by name without import
 from .shapefile import gdb_to_shp, csv_to_shp
+from .earthengine import raster_download
 from .files import ensure_directory
 from . import bootstrap
 
