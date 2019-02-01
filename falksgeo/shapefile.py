@@ -115,8 +115,7 @@ def merge_layers(input_layers, outputfile, remap=empty, debug=False):
         kwargs = {'append': append, 'remap_function': remap}
         copy_layer(layer, outputfile, **kwargs, debug=debug)
 
-
-@print_docstring
+# TODO: review
 def annotate(infile, annotation_files, outfile, index='comid', use=[]):
     """
     Annotate additional properties using GeoPandas
@@ -131,10 +130,12 @@ def annotate(infile, annotation_files, outfile, index='comid', use=[]):
 
 
 @print_docstring
-def annotate_file(infile, annotationfile, outfile, index='comid'):
+def annotate_file(infiles, outfile, index='comid'):
     """
     Annotate attributes from one file by another using index
     """
+    infile = infiles[0]
+    annotationfile = infiles[1]
     df = geopandas.read_file(infile)
     df.set_index(index)
     df[index] = df[index].apply(int)
@@ -143,6 +144,7 @@ def annotate_file(infile, annotationfile, outfile, index='comid'):
     ndf.to_file(outfile, driver='ESRI Shapefile')
 
 
+@print_docstring
 def gdb_to_shp(source_path, dest_path, layer=None):
     """
     Extract Shapefile from GDB

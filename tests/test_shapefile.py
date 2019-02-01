@@ -27,7 +27,7 @@ def create_shapefile(name='test.shp', rows=5, columns=6):
             for item in cols:
                 row['properties'][item] = (
                     ''.join(random.choices(string.ascii_lowercase, k=3)))
-                row['properties']['number'] = ind % 2
+                row['properties']['number'] = ind % 3
                 row['geometry'] = {'type': 'Point', 'coordinates': (ind, ind)}
             f.write(row)
     assert ind, rows-1
@@ -99,6 +99,27 @@ class TestCopyLayer(DirectoryTestCase):
         shapefile.copy_layer(self.shapefile, self.outfile, limit=2)
         with fiona.open(self.outfile) as res:
             self.assertEqual(len([item for item in res]), 2)
+
+
+class TestAnnotateFile(DirectoryTestCase):
+
+    def moreSetUp(self):
+        self.infile = os.path.join(TEST_RES_DIR, 'in.shp')
+        self.outfile = os.path.join(TEST_RES_DIR, 'out.shp')
+        create_shapefile(self.infile)
+        self.csv = os.path.join(TEST_RES_DIR, 'annotation.csv')
+        with open(self.csv, 'w') as csv:
+            csv.write('number,value\n0,sad\n1,solala\n2, happy')
+
+    def test_annotate_file(self):
+        shapefile.annotate_file(
+            [self.infile, self.csv], self.outfile, index='number')
+        with fiona.open(self.outfile) as collection:
+            self.assertEqual(len(collection), 5)
+            for item in collection:
+                assertions = ['sad', 'solala', 'happy']
+                props = item['properties']
+                self.assertEqual(assertions[props['number']], props['value'])
 
 
 class TestCSVToShapefile(DirectoryTestCase):

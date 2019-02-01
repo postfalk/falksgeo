@@ -10,6 +10,7 @@ TEST_DATA_DIR = os.path.join(TESTDIR, 'testdata')
 
 
 class DirectoryTestCase(TestCase):
+    delete = True
 
     def moreSetUp(self):
         pass
@@ -19,4 +20,5 @@ class DirectoryTestCase(TestCase):
         self.moreSetUp()
 
     def tearDown(self):
-        shutil.rmtree(TEST_RES_DIR)
+        if self.delete:
+            shutil.rmtree(TEST_RES_DIR)
