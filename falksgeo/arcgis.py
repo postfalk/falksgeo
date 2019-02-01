@@ -6,8 +6,7 @@ from getpass import getpass
 import sys
 import arcgis
 from arcgis.features import FeatureLayerCollection
-from display import print_docstring
-import config
+from falksgeo.display import print_docstring
 
 
 # ensure these settings for safe publishing

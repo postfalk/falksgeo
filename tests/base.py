@@ -4,6 +4,11 @@ from unittest import TestCase
 from falksgeo.files import ensure_directory
 
 
+import logging
+logging.basicConfig()
+logging.getLogger().setLevel(logging.CRITICAL)
+
+
 TESTDIR = os.path.abspath(os.path.dirname(__file__))
 TEST_RES_DIR = os.path.join(TESTDIR, 'testres')
 TEST_DATA_DIR = os.path.join(TESTDIR, 'testdata')
