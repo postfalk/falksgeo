@@ -10,11 +10,10 @@ from utils.display import print_docstring
 import config
 
 
-def get_gis(portal, user):
+def get_gis(portal, user, password=None):
     """
     Connect to GIS portal
     """
-    password = os.environ.get('GIS_PASSWORD')
     if not password:
         print(
             'You may set the environmental variable GIS_PASSWORD for '
