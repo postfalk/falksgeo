@@ -1,4 +1,3 @@
-from unittest import TestCase
 import os
 import sys
 import shutil
@@ -9,9 +8,7 @@ import fiona.crs
 from shapely.geometry import shape, Point
 from falksgeo import shapefile
 from falksgeo.files import ensure_directory
-
-
-TMP_FOLDER = os.path.abspath(os.path.join(os.path.dirname(__file__), 'testres'))
+from .base import DirectoryTestCase, TEST_RES_DIR, TEST_DATA_DIR
 
 
 def create_shapefile(name='test.shp', rows=5, columns=6):
@@ -36,16 +33,12 @@ def create_shapefile(name='test.shp', rows=5, columns=6):
     assert ind, rows-1
 
 
-class TestCopyLayer(TestCase):
+class TestCopyLayer(DirectoryTestCase):
 
-    def setUp(self):
-        ensure_directory(TMP_FOLDER)
-        self.shapefile = os.path.join(TMP_FOLDER, 'test.shp')
-        self.outfile = os.path.join(TMP_FOLDER, 'out.shp')
+    def moreSetUp(self):
+        self.shapefile = os.path.join(TEST_RES_DIR, 'test.shp')
+        self.outfile = os.path.join(TEST_RES_DIR, 'out.shp')
         create_shapefile(name=self.shapefile)
-
-    def tearDown(self):
-        shutil.rmtree(TMP_FOLDER)
 
     def test_simple_copy(self):
         shapefile.copy_layer(self.shapefile, self.outfile)
@@ -59,7 +52,7 @@ class TestCopyLayer(TestCase):
             self.assertEqual(len(collection[1]['properties']), 7)
 
     def test_append(self):
-        out = os.path.join(TMP_FOLDER, 'appended.shp')
+        out = os.path.join(TEST_RES_DIR, 'appended.shp')
         shapefile.copy_layer(self.shapefile, out)
         shapefile.copy_layer(self.shapefile, out, append=True)
         with fiona.open(out) as collection:
@@ -108,17 +101,13 @@ class TestCopyLayer(TestCase):
             self.assertEqual(len([item for item in res]), 2)
 
 
-class TestCSVToShapefile(TestCase):
+class TestCSVToShapefile(DirectoryTestCase):
 
-    def setUp(self):
-        ensure_directory(TMP_FOLDER)
-        self.csv_fn = os.path.join(TMP_FOLDER, 'test.csv')
-        self.shp_fn = os.path.join(TMP_FOLDER, 'res.shp')
+    def moreSetUp(self):
+        self.csv_fn = os.path.join(TEST_RES_DIR, 'test.csv')
+        self.shp_fn = os.path.join(TEST_RES_DIR, 'res.shp')
         with open(self.csv_fn, 'w') as csv:
             csv.write('name,x,y\nlittle house,-125,25\nbig house,-125.1,25')
-
-    def tearDown(self):
-        shutil.rmtree(TMP_FOLDER)
 
     def test_csv_to_shapefile(self):
         shapefile.csv_to_shp(self.csv_fn, self.shp_fn)
@@ -130,4 +119,3 @@ class TestCSVToShapefile(TestCase):
                     'properties': {'name': 'str:80'}})
             self.assertEqual(collection.driver, 'ESRI Shapefile')
             self.assertEqual(collection.crs, {'init': 'epsg:4326'})
-

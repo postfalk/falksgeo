@@ -1,18 +1,14 @@
 from decimal import Decimal
 import os
-import shutil
-from unittest import TestCase
 from zipfile import ZipFile
 from affine import Affine
 import fiona
 import rasterio
 from falksgeo import earthengine
 from falksgeo.files import ensure_directory
+from .base import DirectoryTestCase, TEST_RES_DIR, TEST_DATA_DIR
 
 
-TESTDIR = os.path.abspath(os.path.dirname(__file__))
-TEST_RES_DIR = os.path.join(TESTDIR, 'testres')
-TEST_DATA_DIR = os.path.join(TESTDIR, 'testdata')
 TEST_TMP_FILE = os.path.join(TEST_RES_DIR, 'tmp.zip')
 
 
@@ -28,19 +24,6 @@ def generate_shp_file(filename):
                      [-122, 38]]]
             },
             'properties': {}})
-
-
-class DirectoryTestCase(TestCase):
-
-    def moreSetUp(self):
-        pass
-
-    def setUp(self):
-        ensure_directory(TEST_RES_DIR)
-        self.moreSetUp()
-
-    def tearDown(self):
-        shutil.rmtree(TEST_RES_DIR)
 
 
 class TestHelpers(DirectoryTestCase):
@@ -165,12 +148,6 @@ class TestMerge(DirectoryTestCase):
 
 
 class TestDownloadImage(DirectoryTestCase):
-
-    def setUp(self):
-        ensure_directory(TEST_RES_DIR)
-
-    def tearDown(self):
-        shutil.rmtree(TEST_RES_DIR)
 
     def test_download_image(self):
         region = [[-122, 38], [-122.01, 38], [-122.01, 38.01], [-122, 38.01]]
