@@ -6,8 +6,17 @@ from getpass import getpass
 import sys
 import arcgis
 from arcgis.features import FeatureLayerCollection
-from utils.display import print_docstring
+from display import print_docstring
 import config
+
+
+# ensure these settings for safe publishing
+DEFAULT_AGO_LAYER_CONFIG = {
+    'capabilities': 'Query',
+    'syncEnabled': False,
+    'allowGeometryUpdates': False,
+    'supportsAppend': False
+}
 
 
 def get_gis(portal, user, password=None):
@@ -75,4 +84,4 @@ def style_ago(gis, item, style):
     layer = FeatureLayerCollection.fromitem(service)
     layer.layers[0].manager.update_definition(style)
     # add some standard definitions to make the layer safe
-    layer.manager.update_definition(config.DEFAULT_AGO_LAYER_CONFIG)
+    layer.manager.update_definition(DEFAULT_AGO_LAYER_CONFIG)
