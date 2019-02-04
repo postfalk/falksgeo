@@ -23,9 +23,6 @@ def get_gis(portal, user, password=None):
     Connect to GIS portal
     """
     if not password:
-        print(
-            'You may set the environmental variable GIS_PASSWORD for '
-            'convenience')
         password = getpass('Password for {}@{}: '.format(user, portal))
     try:
         gis = arcgis.gis.GIS(portal, user, password)
@@ -74,7 +71,7 @@ def publish(zipfile, gis, folder=None):
     print('Service {} shared with everyone'.format(service))
 
 
-def style_ago(gis, item, style):
+def style_ago(gis, item, style, overwrites=DEFAULT_AGO_LAYER_CONFIG):
     """
     Style feature with name item
     """
@@ -82,5 +79,6 @@ def style_ago(gis, item, style):
     print('\nStyle {}'.format(service))
     layer = FeatureLayerCollection.fromitem(service)
     layer.layers[0].manager.update_definition(style)
-    # add some standard definitions to make the layer safe
-    layer.manager.update_definition(DEFAULT_AGO_LAYER_CONFIG)
+    # add standard definitions for a secure FeatureService
+    # (disable editing)
+    layer.manager.update_definition(overwrites)
