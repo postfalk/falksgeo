@@ -216,7 +216,7 @@ def image_to_cloud(
     ee.Initialize()
     options.update({
         'bucket': options.get('bucket') or bucket or 'gde_data',
-        'fileNamePrefix': options.get('fileNamePrefix') or prefix or 'pls_name'
+        'fileNamePrefix': options.get('fileNamePrefix') or prefix or 'pls_name',
         'region': options.get(region) or region})
     task = ee.batch.Export.image.toCloudStorage(image, **options)
     start = datetime.now()
