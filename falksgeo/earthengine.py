@@ -203,7 +203,9 @@ def merge(filelist, dest, nodata=-32768):
         print('No images to process')
 
 
-def image_to_cloud(options, image=get_normalized_image()):
+def image_to_cloud(
+        options, image=get_normalized_image(),
+        bucket=None, prefix=None, region=None):
     """
     Implements recommended way of storing downloads into GCS
     """
@@ -212,9 +214,9 @@ def image_to_cloud(options, image=get_normalized_image()):
     print('Send image to Google Cloud Storage')
     ee.Initialize()
     options.update({
-        'description': 'ndviTrend',
-        'bucket': 'gde_data',
-        'fileNamePrefix': 'ndviTrend'})
+        'bucket': options.get('bucket') or bucket or 'gde_data',
+        'fileNamePrefix': options.get('fileNamePrefix') or prefix or 'pls_name'
+        'region': options.get(region) or region})
     task = ee.batch.Export.image.toCloudStorage(image, **options)
     start = datetime.now()
     task.start()
