@@ -213,11 +213,12 @@ def image_to_cloud(
     # TODO: finalize
     # see https://github.com/google/earthengine-api/blob/master/python/ee/batch.py
     print('Send image to Google Cloud Storage')
-    ee.Initialize()
+    print(options)
     options.update({
         'bucket': options.get('bucket') or bucket or 'gde_data',
         'fileNamePrefix': options.get('fileNamePrefix') or prefix or 'pls_name',
-        'region': options.get(region) or region})
+        'region': options.get('region') or region})
+    ee.Initialize()
     task = ee.batch.Export.image.toCloudStorage(image, **options)
     start = datetime.now()
     task.start()
@@ -229,10 +230,10 @@ def image_to_cloud(
 
 
 def raster_download(
-        area_shape, dest_raster, dest='/tmp/', image_options={}, step=1,
-        image=get_normalized_image
-        ):
-        files = download_parts(
-            area_shape, image_options, step=step, clean=False,
-            ee_function=ee_function, dest=dest)
-        merge(files, dest_raster)
+    area_shape, dest_raster, dest='/tmp/', image_options={}, step=1,
+    image=get_normalized_image
+):
+    files = download_parts(
+        area_shape, image_options, step=step, clean=False,
+        ee_function=ee_function, dest=dest)
+    merge(files, dest_raster)
