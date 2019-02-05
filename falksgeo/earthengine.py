@@ -205,7 +205,8 @@ def merge(filelist, dest, nodata=-32768):
 
 def image_to_cloud(
         options, image=get_normalized_image(),
-        bucket=None, prefix=None, region=None):
+        bucket=None, prefix=None, region=None
+):
     """
     Implements recommended way of storing downloads into GCS
     """
