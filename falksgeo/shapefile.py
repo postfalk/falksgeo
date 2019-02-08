@@ -154,7 +154,7 @@ def gdb_to_shp(source_path, dest_path, layer=None):
     """
     if not layer:
         return
-    ensure_directories(os.path.split(dest_path)[0])
+    ensure_directory(os.path.split(dest_path)[0])
     with fiona.open(source_path, layer=layer) as collection:
         meta = collection.meta
         meta['driver'] = 'ESRI Shapefile'
