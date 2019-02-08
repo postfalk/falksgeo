@@ -235,5 +235,5 @@ def raster_download(
     ):
     files = download_parts(
         area_shape, image_options, step=step, clean=False,
-        ee_function=image, dest=dest)
+        image=image, dest=dest)
     merge(files, dest_raster)
