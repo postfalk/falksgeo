@@ -13,6 +13,7 @@ import geopandas
 import pandas as pd
 from .display import PercentDisplay, print_docstring
 from .transformations import empty
+from .files import ensure_directory
 from .filters import empty_filter
 from .pandas import concat_dataframes
 
