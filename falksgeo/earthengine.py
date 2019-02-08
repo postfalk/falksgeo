@@ -232,8 +232,8 @@ def image_to_cloud(
 def raster_download(
     area_shape, dest_raster, dest='/tmp/', image_options={}, step=1,
     image=get_normalized_image
-):
+    ):
     files = download_parts(
         area_shape, image_options, step=step, clean=False,
-        ee_function=ee_function, dest=dest)
+        ee_function=image, dest=dest)
     merge(files, dest_raster)
