@@ -54,11 +54,14 @@ class TestHashing(DirectoryTestCase):
         # source change always True if no hash file provided
         self.assertFalse(bootstrap.check_source_changes(TEST_FILENAME))
         self.assertFalse(bootstrap.check_source_changes(TEST_FILENAME))
+        self.assertTrue(bootstrap.check_source_changes(
+            TEST_FILENAME, no_hash_store_default=True))
         # source should be written to the hash file
         self.assertTrue(bootstrap.check_source_changes(
             TEST_FILENAME, hash_store_name=TEST_HASH_STORE))
         self.assertFalse(bootstrap.check_source_changes(
             TEST_FILENAME, hash_store_name=TEST_HASH_STORE))
+        # test providing a list of upstream sources
         test_list = [TEST_FILENAME, ANOTHER_TEST_FILENAME]
         self.assertTrue(bootstrap.check_source_changes(
             test_list, hash_store_name=TEST_HASH_STORE))
@@ -68,3 +71,7 @@ class TestHashing(DirectoryTestCase):
             fil.write('hello')
         self.assertTrue(bootstrap.check_source_changes(
             test_list, hash_store_name=TEST_HASH_STORE))
+        # test with URL's to ignore (in order to not download entire files
+        # for hashing)
+        self.assertFalse(bootstrap.check_source_changes(
+            'https://google.com', hash_store_name=TEST_HASH_STORE))

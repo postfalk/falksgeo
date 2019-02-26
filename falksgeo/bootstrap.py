@@ -1,5 +1,5 @@
 """
-Bootstrap, ensure data sources
+Bootstrap, hash, and ensure data sources
 """
 # standard library
 import os
@@ -45,7 +45,7 @@ def unzip(zipf, dest, **kwargs):
 
 def hash_file(file_path):
     """
-    Hash file to track changes
+    Hash a file to track changes
     """
     # see https://www.pythoncentral.io/hashing-files-with-python/
     hasher = hashlib.md5()
@@ -75,8 +75,11 @@ def check_source_changes(
     hash_dic = {}
     hsh = ''
     if not hash_store_name:
-        print('Not tracking changes')
-        ret = False
+        if no_hash_store_default:
+            print('No tracking sources: Overwrite')
+        else:
+            print('Not tracking changes')
+        ret = bool(no_hash_store_default)
     else:
         try:
             with open(hash_store_name) as fil:
@@ -87,6 +90,9 @@ def check_source_changes(
         if not isinstance(sources, (list, tuple)):
             sources = [sources]
         for item in sources:
+            if not os.path.isfile(item):
+                ret = False
+                continue
             try:
                 hsh = hash_dic[item]
             except KeyError:
