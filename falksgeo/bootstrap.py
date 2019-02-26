@@ -129,7 +129,8 @@ def check_or_create_files(
     if directory:
         ensure_directory(directory)
     create = (
-        not check_file_exists(file_path) or check_source_changes(file_path))
+        not check_file_exists(file_path) or
+        check_source_changes(file_path, hash_store_name=hash_store_name))
     if create:
         print(
             '\nAttempting creation of {}\nfrom {}\n'.format(
