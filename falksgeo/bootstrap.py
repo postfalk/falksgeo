@@ -78,7 +78,7 @@ def file_timestamp(file_path):
 
 def check_source_changes(
     sources, hash_store_name=None, no_hash_store_default=False,
-    key_not_exist_default=False, hash_function=file_timestamp
+    key_not_exist_default=False, hash_function=hash_file
 ):
     """
     Track upstream source changes.
