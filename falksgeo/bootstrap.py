@@ -58,7 +58,8 @@ def hash_file(file_path):
 
 
 def check_source_changes(
-        sources, hash_store_name=None, no_hash_store_default=False
+        sources, hash_store_name=None, no_hash_store_default=False,
+        key_not_exist_default=False
     ):
     """
     Track upstream source changes.
@@ -66,7 +67,8 @@ def check_source_changes(
     Args:
         sources: lst(str) - List of upstream sources (filenames)
         hash_store_name: str - Filename where to store hashes
-        no_has_store_default: boolean - Default return when no store present
+        no_hash_store_default: boolean - Default return when no store present
+        key_not_exist_default: boolean - Default return when no key present
 
     Returns:
         boolean: Whether upstream sources should be considered changed
@@ -76,38 +78,41 @@ def check_source_changes(
     hsh = ''
     if not hash_store_name:
         if no_hash_store_default:
-            print('No tracking sources: Overwrite')
+            print('Not tracking sources: Overwrite')
         else:
-            print('Not tracking changes')
-        ret = bool(no_hash_store_default)
-    else:
+            print('Not tracking changes: Assume no change')
+        return bool(no_hash_store_default)
+    try:
+        with open(hash_store_name) as fil:
+            hash_dic = json.loads(fil.read())
+    except FileNotFoundError:
+        pass
+    if not isinstance(sources, (list, tuple)):
+        sources = [sources]
+    for item in sources:
+        if not os.path.isfile(item):
+            print('Source is not a file')
+            continue
         try:
-            with open(hash_store_name) as fil:
-                hash_dic = json.loads(fil.read())
-        except FileNotFoundError:
-            print('Hash store does not exist: Overwrite results')
-            ret = True
-        if not isinstance(sources, (list, tuple)):
-            sources = [sources]
-        for item in sources:
-            if not os.path.isfile(item):
-                ret = False
-                continue
-            try:
-                hsh = hash_dic[item]
-            except KeyError:
+            hsh = hash_dic[item]
+        except KeyError:
+            hsh = None
+            if key_not_exist_default:
                 print('Key does not exist in hash file: Overwrite results')
                 ret = True
-            new_hash = hash_file(item)
-            if hsh != new_hash:
-                hash_dic.update({item: new_hash})
-                hash_store_new = json.dumps(hash_dic)
-                with open(hash_store_name, 'w') as fil:
-                    fil.write(hash_store_new)
-                ret = True
-                print('Upstream source changed')
             else:
-                print('Sources did not change')
+                print('Key does not exist in hash file: Assume no change')
+        new_hash = hash_file(item)
+        if hsh:
+            if hsh != new_hash:
+                print('Upstream source changed')
+                ret = True
+            else:
+                print('Upstream sources did not change')
+        hash_dic.update({item: new_hash})
+        hash_store_new = json.dumps(hash_dic)
+        with open(hash_store_name, 'w') as fil:
+            fil.write(hash_store_new)
     return ret
 
 
@@ -119,12 +124,8 @@ def check_file_exists(file_path):
 
 
 def check_or_create_files(
-        source_path,
-        file_path,
-        directory=None,
-        create_function=copy_tree,
-        create_kwargs={},
-        hash_store_name=None
+        source_path, file_path, directory=None, create_function=copy_tree,
+        create_kwargs={}, hash_store_name=None
     ):
     """
     Check whether a file exists, if not attempt creation by adding
