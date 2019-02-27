@@ -54,22 +54,35 @@ class TestHashing(DirectoryTestCase):
             'd33cdfbc66e23a13a5844cbf12794352')
 
     def test_shapefilebehavior(self):
+        """
+        This is not really a test but confirms suspected behavior that
+        hashing on .shp part of shapefiles does not capture attribute
+        changes.
+        """
+        # TODO: make this a test when we have a solution to the problem
         schema = {'geometry': 'Point', 'properties': {'test': 'str'}}
         args = TEST_SHAPEFILE, 'w', 'ESRI Shapefile', schema
         with fiona.open(*args) as fil:
             fil.write({
                 'geometry': {'type': 'Point', 'coordinates': [1, 1]},
                 'properties': {'test': 'cat'}})
-        print(bootstrap.hash_file(TEST_SHAPEFILE))
+        hash = bootstrap.hash_file(TEST_SHAPEFILE)
         with fiona.open(TEST_SHAPEFILE) as collection:
             args = TEST_SHAPEFILE_1, 'w', 'ESRI Shapefile', schema
             with fiona.open(*args) as new_collection:
                 for item in collection:
                     item['properties']['test'] = 'dog'
+                    new_collection.write(item)
+        # for a working hash algorithm that should be not equal!
+        self.assertEqual(hash, bootstrap.hash_file(TEST_SHAPEFILE_1))
+        with fiona.open(TEST_SHAPEFILE) as collection:
+            args = TEST_SHAPEFILE_1, 'w', 'ESRI Shapefile', schema
+            with fiona.open(*args) as new_collection:
+                for item in collection:
                     item['geometry'] = {
                         'type': 'Point', 'coordinates': [3, 3]}
                     new_collection.write(item)
-        print(bootstrap.hash_file(TEST_SHAPEFILE_1))
+        self.assertNotEqual(hash, bootstrap.hash_file(TEST_SHAPEFILE_1))
 
 
 class TestChangeTracking(DirectoryTestCase):
@@ -80,6 +93,29 @@ class TestChangeTracking(DirectoryTestCase):
             tf.write('0,0,0,0')
         with open(ANOTHER_TEST_FILENAME, 'w') as tf:
             tf.write('bla')
+        schema = {'geometry': 'Point', 'properties': {'test': 'str'}}
+        args = TEST_SHAPEFILE, 'w', 'ESRI Shapefile', schema
+        with fiona.open(*args) as shp:
+            shp.write({
+                'geometry': {'type': 'Point', 'coordinates': [1, 1]},
+                'properties': {'test': 'dog'}})
+
+
+    def test_shapefile_changes(self):
+        self.assertFalse(bootstrap.check_source_changes(
+            TEST_SHAPEFILE, hash_store_name=TEST_HASH_STORE))
+        self.assertFalse(bootstrap.check_source_changes(
+            TEST_SHAPEFILE, hash_store_name=TEST_HASH_STORE))
+        schema = {'geometry': 'Point', 'properties': {'test': 'str'}}
+        args = TEST_SHAPEFILE, 'w', 'ESRI Shapefile', schema
+        with fiona.open(TEST_SHAPEFILE) as collection:
+            data = list(collection)
+        with fiona.open(*args) as new_collection:
+            for item in data:
+                new_collection.write(item)
+        self.assertTrue(bootstrap.check_source_changes(
+            TEST_SHAPEFILE, hash_store_name=TEST_HASH_STORE))
+
 
     def test_source_changes(self):
         # source change False if no hash file provided

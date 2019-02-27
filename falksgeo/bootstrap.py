@@ -78,7 +78,7 @@ def file_timestamp(file_path):
 
 def check_source_changes(
     sources, hash_store_name=None, no_hash_store_default=False,
-    key_not_exist_default=False, hash_function=hash_file
+    key_not_exist_default=False, hash_function=file_timestamp
 ):
     """
     Track upstream source changes.
@@ -100,6 +100,7 @@ def check_source_changes(
             print('Not tracking sources: Overwrite')
         else:
             print('Not tracking sources: Assume no change')
+        print(no_hash_store_default)
         return bool(no_hash_store_default)
     try:
         with open(hash_store_name) as fil:
