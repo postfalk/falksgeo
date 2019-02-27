@@ -26,6 +26,17 @@ class CreationError(Exception):
     pass
 
 
+def get_from_tuple(tpl, idx):
+    """
+    Helper function that allows for non_existing tuple indexes (will
+    return None)
+    """
+    try:
+        return tpl[idx]
+    except IndexError:
+        pass
+
+
 def copy_tree(source_name, dest, **kwargs):
     dest = kwargs.get('directory') or dest
     shutil.copytree(source_name, dest)
@@ -58,9 +69,9 @@ def hash_file(file_path):
 
 
 def check_source_changes(
-        sources, hash_store_name=None, no_hash_store_default=False,
-        key_not_exist_default=False
-    ):
+    sources, hash_store_name=None, no_hash_store_default=False,
+    key_not_exist_default=False
+):
     """
     Track upstream source changes.
 
@@ -80,15 +91,14 @@ def check_source_changes(
         if no_hash_store_default:
             print('Not tracking sources: Overwrite')
         else:
-            print('Not tracking changes: Assume no change')
+            print('Not tracking sources: Assume no change')
         return bool(no_hash_store_default)
     try:
         with open(hash_store_name) as fil:
             hash_dic = json.loads(fil.read())
     except FileNotFoundError:
         pass
-    if not isinstance(sources, (list, tuple)):
-        sources = [sources]
+    sources = sources if isinstance(sources, (list, tuple)) else [sources]
     for item in sources:
         if not os.path.isfile(item):
             print('Source is not a file')
@@ -108,25 +118,17 @@ def check_source_changes(
                 print('Upstream source changed')
                 ret = True
             else:
-                print('Upstream sources did not change')
+                print('Upstream source did not change')
         hash_dic.update({item: new_hash})
-        hash_store_new = json.dumps(hash_dic)
         with open(hash_store_name, 'w') as fil:
-            fil.write(hash_store_new)
+            fil.write(json.dumps(hash_dic))
     return ret
 
 
-def check_file_exists(file_path):
-    """
-    Check whether file exists
-    """
-    return os.path.isfile(file_path)
-
-
 def check_or_create_files(
-        source_path, file_path, directory=None, create_function=copy_tree,
-        create_kwargs={}, hash_store_name=None
-    ):
+    source_path, file_path, directory=None, create_function=copy_tree,
+    create_kwargs={}, hash_store_name=None
+):
     """
     Check whether a file exists, if not attempt creation by adding
     source to local data directory.
@@ -135,24 +137,18 @@ def check_or_create_files(
         create_function=getattr(bootstrap, create_function)
     if directory:
         ensure_directory(directory)
+    hash_store_name=file_path + '.hashes.json'
     create = (
-        not check_file_exists(file_path) or
+        not os.path.isfile(file_path) or
         check_source_changes(file_path, hash_store_name=hash_store_name))
     if create:
-        print(
-            '\nAttempting creation of {}\nfrom {}\n'.format(
-                file_path, source_path))
+        snippet = '\nAttempting creation of {}\nfrom {}\n'
+        print(snippet.format(file_path, source_path))
         create_function(source_path, file_path, **create_kwargs)
-        if not os.path.isfile(file_path):
-            raise CreationError('{} MISSING'.format(file_path))
-    print('{} AVAILABLE'.format(file_path))
-
-
-def get_from_tuple(tpl, idx):
-    try:
-        return tpl[idx]
-    except IndexError:
-        pass
+    if os.path.isfile(file_path):
+        print('{} AVAILABLE'.format(file_path))
+    else:
+        raise CreationError('{} MISSING'.format(file_path))
 
 
 def get_assets(list_of_assets, hash_store_name=None):
@@ -170,8 +166,7 @@ def get_assets(list_of_assets, hash_store_name=None):
     """
     try:
         for ds in list_of_assets:
-            check_or_create_files(
-                ds[0], ds[1], create_function=ds[2],
+            check_or_create_files(ds[0], ds[1], create_function=ds[2],
                 create_kwargs=get_from_tuple(ds, 3),
                 hash_store_name=hash_store_name)
     except CreationError:
