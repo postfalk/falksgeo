@@ -1,5 +1,5 @@
 """
-Utils for shapefile manipulation
+Utilities for shapefile manipulation
 """
 import os
 import re
@@ -48,9 +48,9 @@ def create_remap(attributes):
 
 @print_docstring
 def copy_layer(
-        inputname, outputname, append=False, remap_function=empty,
-        filter_function=empty_filter, filter_kwargs={},
-        fields=None, layer=None, limit=None
+    inputname, outputname, append=False, remap_function=empty,
+    filter_function=empty_filter, filter_kwargs={},
+    fields=None, layer=None, limit=None
 ):
     """
     Copy, remap, and filter a shapefile
@@ -77,6 +77,7 @@ def copy_layer(
 
 
 @print_docstring
+# This is too convoluted, TODO: slate for removal
 def create_variable(
     inputname, outputname, ref, variable='available', value=1, default=None,
     index='comid'):
@@ -117,6 +118,7 @@ def merge_layers(input_layers, outputfile, remap=empty, debug=False):
         append = True if index else False
         kwargs = {'append': append, 'remap_function': remap}
         copy_layer(layer, outputfile, **kwargs, debug=debug)
+
 
 # TODO: review
 def annotate(infile, annotation_files, outfile, index='comid', use=[]):
