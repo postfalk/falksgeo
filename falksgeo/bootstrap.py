@@ -148,7 +148,7 @@ def check_or_create_files(
     hash_store_name=file_path + '.hashes.json'
     create = (
         not os.path.isfile(file_path) or
-        check_source_changes(file_path, hash_store_name=hash_store_name))
+        check_source_changes(source_path, hash_store_name=hash_store_name))
     if create:
         snippet = '\nAttempting creation of {}\nfrom {}\n'
         print(snippet.format(file_path, source_path))
