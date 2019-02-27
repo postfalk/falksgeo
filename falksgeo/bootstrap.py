@@ -100,7 +100,6 @@ def check_source_changes(
             print('Not tracking sources: Overwrite')
         else:
             print('Not tracking sources: Assume no change')
-        print(no_hash_store_default)
         return bool(no_hash_store_default)
     try:
         with open(hash_store_name) as fil:
@@ -110,24 +109,26 @@ def check_source_changes(
     sources = sources if isinstance(sources, (list, tuple)) else [sources]
     for item in sources:
         if not os.path.isfile(item):
-            print('Source is not a file')
+            print('Source {} is not a file'.format(item))
             continue
         try:
             hsh = hash_dic[item]
         except KeyError:
             hsh = None
+            print('Key {} does not exist in hash file: '.format(item), sep='')
             if key_not_exist_default:
-                print('Key does not exist in hash file: Overwrite results')
+                print('Overwrite results')
                 ret = True
             else:
-                print('Key does not exist in hash file: Assume no change')
+                print('Assume no change')
         new_hash = hash_function(item)
         if hsh:
+            print('Upstream source {} '.format(item), sep='')
             if hsh != new_hash:
-                print('Upstream source changed')
+                print('changed')
                 ret = True
             else:
-                print('Upstream source did not change')
+                print('did not change')
         hash_dic.update({item: new_hash})
         with open(hash_store_name, 'w') as fil:
             fil.write(json.dumps(hash_dic))
