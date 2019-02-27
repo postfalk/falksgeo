@@ -1,6 +1,7 @@
 import os
 import shutil
 from unittest import TestCase
+import fiona
 from falksgeo import bootstrap
 from falksgeo.files import ensure_directory
 from .base import DirectoryTestCase, TEST_RES_DIR
@@ -12,6 +13,8 @@ TEST_FILENAME = os.path.join(TEST_A_DIR, 'testfile.csv')
 ANOTHER_TEST_FILENAME = os.path.join(TEST_A_DIR, 'anothertestfile.csv')
 TEST_RES_FILENAME = os.path.join(TEST_RES_DIR, 'bdir', 'testfile.csv')
 TEST_HASH_STORE = os.path.join(TEST_RES_DIR, 'hashes.json')
+TEST_SHAPEFILE = os.path.join(TEST_RES_DIR, 'test.shp')
+TEST_SHAPEFILE_1 = os.path.join(TEST_RES_DIR, 'test1.shp')
 
 
 class TestCheckOrCreateFile(DirectoryTestCase):
@@ -49,6 +52,34 @@ class TestHashing(DirectoryTestCase):
         self.assertEqual(
             bootstrap.hash_file(TEST_FILENAME),
             'd33cdfbc66e23a13a5844cbf12794352')
+
+    def test_shapefilebehavior(self):
+        schema = {'geometry': 'Point', 'properties': {'test': 'str'}}
+        args = TEST_SHAPEFILE, 'w', 'ESRI Shapefile', schema
+        with fiona.open(*args) as fil:
+            fil.write({
+                'geometry': {'type': 'Point', 'coordinates': [1, 1]},
+                'properties': {'test': 'cat'}})
+        print(bootstrap.hash_file(TEST_SHAPEFILE))
+        with fiona.open(TEST_SHAPEFILE) as collection:
+            args = TEST_SHAPEFILE_1, 'w', 'ESRI Shapefile', schema
+            with fiona.open(*args) as new_collection:
+                for item in collection:
+                    item['properties']['test'] = 'dog'
+                    item['geometry'] = {
+                        'type': 'Point', 'coordinates': [3, 3]}
+                    new_collection.write(item)
+        print(bootstrap.hash_file(TEST_SHAPEFILE_1))
+
+
+class TestChangeTracking(DirectoryTestCase):
+
+    def moreSetUp(self):
+        ensure_directory(TEST_A_DIR)
+        with open(TEST_FILENAME, 'w') as tf:
+            tf.write('0,0,0,0')
+        with open(ANOTHER_TEST_FILENAME, 'w') as tf:
+            tf.write('bla')
 
     def test_source_changes(self):
         # source change False if no hash file provided
@@ -111,4 +142,3 @@ class TestHashing(DirectoryTestCase):
         self.assertFalse(bootstrap.check_source_changes(
             'https://google.com', hash_store_name=TEST_HASH_STORE,
             key_not_exist_default=True))
-

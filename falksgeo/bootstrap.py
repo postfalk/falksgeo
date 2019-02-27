@@ -68,9 +68,17 @@ def hash_file(file_path):
     return hasher.hexdigest()
 
 
+def file_timestamp(file_path):
+    """
+    Use file data instead of hash in order to accomodate
+    large and shapefiles
+    """
+    return os.path.getmtime(file_path)
+
+
 def check_source_changes(
     sources, hash_store_name=None, no_hash_store_default=False,
-    key_not_exist_default=False
+    key_not_exist_default=False, hash_function=file_timestamp
 ):
     """
     Track upstream source changes.
@@ -112,7 +120,7 @@ def check_source_changes(
                 ret = True
             else:
                 print('Key does not exist in hash file: Assume no change')
-        new_hash = hash_file(item)
+        new_hash = hash_function(item)
         if hsh:
             if hsh != new_hash:
                 print('Upstream source changed')
