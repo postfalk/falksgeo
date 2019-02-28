@@ -79,7 +79,8 @@ def copy_layer(
 
 def copy_shp(
     inputname, outputname, append=False, remap_function=None,
-    filter_function=None, fields=[], layer=None, limit=None
+    filter_function=None, fields=[], layer=None, limit=None,
+    reproject=None
 ):
     """
     Copy, remap, and filter a shapefile using GeoPandas
@@ -98,6 +99,10 @@ def copy_shp(
         if not 'geometry' in fields:
             fields.append('geometry')
         df = df[fields]
+    if isinstance(reproject, int):
+        reproject = {'init': 'epsg:{}'.format(reproject)}
+    if reproject:
+        df = df.to_crs(reproject)
     df.to_file(outputname, driver='ESRI Shapefile')
     print('\n{} generated\n'.format(outputname))
 
