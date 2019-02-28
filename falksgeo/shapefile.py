@@ -47,6 +47,7 @@ def create_remap(attributes):
 
 
 @print_docstring
+# TODO: deprecate if the pandas based approach works well
 def copy_layer(
     inputname, outputname, append=False, remap_function=empty,
     filter_function=empty_filter, filter_kwargs={},
@@ -73,6 +74,31 @@ def copy_layer(
                 if filter_function(item, **filter_kwargs):
                     output.write(item)
         percentage.display()
+    print('\n{} generated\n'.format(outputname))
+
+
+def copy_shp(
+    inputname, outputname, append=False, remap_function=None,
+    filter_function=None, fields=[], layer=None, limit=None
+):
+    """
+    Copy, remap, and filter a shapefile using GeoPandas
+    """
+    fields = fields.copy()
+    print(inputname, '=>', outputname)
+    df = geopandas.read_file(inputname)
+    if append and os.path.isfile(outputname):
+        edf = geopandas.read_file(outputname)
+        df = edf.append(df)
+    if remap_function:
+        df = df.apply(remap_function, axis=1)
+    if filter_function:
+        df = df[df.apply(filter_function, axis=1, reduce=True)]
+    if fields:
+        if not 'geometry' in fields:
+            fields.append('geometry')
+        df = df[fields]
+    df.to_file(outputname, driver='ESRI Shapefile')
     print('\n{} generated\n'.format(outputname))
 
 

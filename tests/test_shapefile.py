@@ -16,7 +16,7 @@ def create_shapefile(name='test.shp', rows=5, columns=6):
     """
     Create a shapefile for tests
     """
-    crs = fiona.crs.from_epsg(4326)
+    crs = fiona.crs.from_epsg(3310)
     data = []
     cols = ['one', 'two', 'THREE', 'four', 'five', 'six', 'seven'][0:columns]
     schema = {'geometry': 'Point', 'properties': {k: 'str' for k in cols}}
@@ -100,6 +100,74 @@ class TestCopyLayer(DirectoryTestCase):
         shapefile.copy_layer(self.shapefile, self.outfile, limit=2)
         with fiona.open(self.outfile) as res:
             self.assertEqual(len([item for item in res]), 2)
+
+
+class TestCopyShp(DirectoryTestCase):
+
+    def moreSetUp(self):
+        self.shapefile = os.path.join(TEST_RES_DIR, 'test.shp')
+        self.outfile = os.path.join(TEST_RES_DIR, 'out.shp')
+        create_shapefile(name=self.shapefile)
+
+    def test_simple_copy(self):
+        shapefile.copy_shp(self.shapefile, self.outfile)
+        with fiona.open(self.outfile) as collection:
+            self.assertEqual(len(collection), 5)
+            self.assertEqual(len(collection[1]['properties']), 7)
+        # make sure it overwrites
+        shapefile.copy_shp(self.shapefile, self.outfile)
+        with fiona.open(self.outfile) as collection:
+            self.assertEqual(len(collection), 5)
+            self.assertEqual(len(collection[1]['properties']), 7)
+
+    def test_append(self):
+        out = os.path.join(TEST_RES_DIR, 'appended.shp')
+        shapefile.copy_shp(self.shapefile, out)
+        shapefile.copy_shp(self.shapefile, out, append=True)
+        with fiona.open(out) as collection:
+            self.assertEqual(len(collection), 10)
+            self.assertEqual(len(collection[1]['properties']), 7)
+
+    def test_subset_cols(self):
+        fields = ['one', 'THREE', 'four']
+        shapefile.copy_shp(
+            self.shapefile, self.outfile, fields=fields)
+        with fiona.open(self.outfile) as collection:
+            self.assertEqual(len(collection), 5)
+            self.assertEqual(len(collection[1]['properties']), 3)
+            for field in fields:
+                self.assertIn(field, collection[2]['properties'])
+            for field in ['two', 'five', 'six', 'number']:
+                self.assertNotIn(field, collection[3]['properties'])
+
+    def test_remap(self):
+        def remap(row):
+            row['zwei'] = row['two']
+            del row['two']
+            return row
+        shapefile.copy_shp(
+             self.shapefile, self.outfile, remap_function=remap)
+        with fiona.open(self.outfile) as collection:
+            self.assertEqual(len(collection), 5)
+            fields = ['one', 'zwei', 'THREE', 'four', 'five', 'six', 'number']
+            for field in fields:
+                self.assertIn(field, collection[4]['properties'])
+            self.assertNotIn('two', collection[0]['properties'])
+
+    def test_filtering(self):
+        def filtr(row):
+            return row['number'] == 1
+        shapefile.copy_shp(
+            self.shapefile, self.outfile, filter_function=filtr)
+        with fiona.open(self.outfile) as collection:
+            self.assertEqual(len(collection), 2)
+            for item in collection:
+                self.assertIn(item['properties']['number'], [1, 3])
+
+    def test_crs(self):
+        shapefile.copy_shp(self.shapefile, self.outfile)
+        with fiona.open(self.outfile) as collection:
+            self.assertEqual(collection.crs, {'init': 'epsg:3310'})
 
 
 class TestAnnotateFile(DirectoryTestCase):
