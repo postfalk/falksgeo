@@ -92,9 +92,12 @@ def copy_shp(
         edf = geopandas.read_file(outputname)
         df = edf.append(df)
     if remap_function:
+        # remap function might swallow crs
+        crs = df.crs
         df = df.apply(remap_function, axis=1)
+        df.crs = crs
     if filter_function:
-        df = df[df.apply(filter_function, axis=1, reduce=True)]
+        df = df[df.apply(filter_function, axis=1, result_type='reduce')]
     if fields:
         if not 'geometry' in fields:
             fields.append('geometry')

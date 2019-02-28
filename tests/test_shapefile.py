@@ -177,6 +177,15 @@ class TestCopyShp(DirectoryTestCase):
             self.assertAlmostEqual(
                 collection[0]['geometry']['coordinates'][1], 38.01636, 4)
 
+    def test_reproject_with_remap(self):
+        def remap(row):
+            return row
+        shapefile.copy_shp(
+            self.shapefile, self.outfile, reproject=4326,
+            remap_function=remap)
+        with fiona.open(self.shapefile) as collection:
+            self.assertEqual(collection.crs, {'init': 'epsg:3310'})
+
 
 class TestAnnotateFile(DirectoryTestCase):
 
