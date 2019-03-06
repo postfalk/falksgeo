@@ -79,7 +79,7 @@ def copy_layer(
 
 def copy_shp(
     inputname, outputname, append=False, remap_function=None,
-    filter_function=None, fields=[], layer=None, limit=None,
+    filter_function=None, fields=[], sort=[],
     reproject=None
 ):
     """
@@ -98,6 +98,9 @@ def copy_shp(
         df.crs = crs
     if filter_function:
         df = df[df.apply(filter_function, axis=1, result_type='reduce')]
+    if sort:
+        df.sort_values(by=sort, inplace=True)
+        df.reset_index(drop=True, inplace=True)
     if fields:
         if not 'geometry' in fields:
             fields.append('geometry')

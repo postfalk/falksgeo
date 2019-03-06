@@ -28,7 +28,7 @@ def create_shapefile(name='test.shp', rows=5, columns=6):
             for item in cols:
                 row['properties'][item] = (
                     ''.join(random.choices(string.ascii_lowercase, k=3)))
-                row['properties']['number'] = ind % 3
+                row['properties']['number'] = ind % 4
                 row['geometry'] = {'type': 'Point', 'coordinates': (ind, ind)}
             f.write(row)
     assert ind, rows-1
@@ -160,7 +160,7 @@ class TestCopyShp(DirectoryTestCase):
         shapefile.copy_shp(
             self.shapefile, self.outfile, filter_function=filtr)
         with fiona.open(self.outfile) as collection:
-            self.assertEqual(len(collection), 2)
+            self.assertEqual(len(collection), 1)
             for item in collection:
                 self.assertIn(item['properties']['number'], [1, 3])
 
@@ -186,6 +186,19 @@ class TestCopyShp(DirectoryTestCase):
         with fiona.open(self.shapefile) as collection:
             self.assertEqual(collection.crs, {'init': 'epsg:3310'})
 
+    def test_sort(self):
+        with fiona.open(self.shapefile) as collection:
+            values = [item['properties']['one'] for item in collection]
+            unsorted = values.copy()
+            values.sort()
+            self.assertNotEqual(unsorted, values)
+        shapefile.copy_shp(self.shapefile, self.outfile, sort=['one'])
+        with fiona.open(self.outfile) as collection:
+            values = [item['properties']['one'] for item in collection]
+            unsorted = values.copy()
+            values.sort()
+            self.assertEqual(unsorted, values)
+
 
 class TestAnnotateFile(DirectoryTestCase):
 
@@ -203,7 +216,9 @@ class TestAnnotateFile(DirectoryTestCase):
         with fiona.open(self.outfile) as collection:
             self.assertEqual(len(collection), 5)
             for item in collection:
-                assertions = ['sad', 'solala', 'happy']
+                props = item['properties']
+                print(props['number'], props['value'])
+                assertions = ['sad', 'solala', 'happy', None]
                 props = item['properties']
                 self.assertEqual(assertions[props['number']], props['value'])
 
