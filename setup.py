@@ -12,6 +12,7 @@ setup(
     packages=['falksgeo'],
     zip_safe=False,
     install_requires=[
+        'pyproj==1.9.8'
         'arcgis==1.5.2.post1',
         'geopandas==0.4.0',
         'earthengine-api==0.1.164',
