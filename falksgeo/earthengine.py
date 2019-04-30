@@ -197,6 +197,10 @@ def merge(filelist, dest, nodata=-32768):
         profile['height'] = new_raster[0].shape[1]
         profile['width'] = new_raster[0].shape[2]
         profile['nodata'] = nodata
+        profile.update({
+            'tiled': True,
+            'compress': 'DEFLATE'
+        })
         with rasterio.open(dest, 'w', **profile) as dst:
             dst.write(new_raster[0])
     else:
