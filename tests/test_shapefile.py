@@ -1,15 +1,12 @@
+# pylint:disable=C0114,C0115,C0116,C0103
 import os
-import sys
-import shutil
 import random
 import string
 from zipfile import ZipFile
 import fiona
 import fiona.crs
-from shapely.geometry import shape, Point
 from falksgeo import shapefile
-from falksgeo.files import ensure_directory
-from .base import DirectoryTestCase, TEST_RES_DIR, TEST_DATA_DIR
+from .base import DirectoryTestCase, TEST_RES_DIR
 
 
 def create_shapefile(name='test.shp', rows=5, columns=6):
@@ -17,7 +14,6 @@ def create_shapefile(name='test.shp', rows=5, columns=6):
     Create a shapefile for tests
     """
     crs = fiona.crs.from_epsg(3310)
-    data = []
     cols = ['one', 'two', 'THREE', 'four', 'five', 'six', 'seven'][0:columns]
     schema = {'geometry': 'Point', 'properties': {k: 'str' for k in cols}}
     schema['properties']['number'] = 'int'
@@ -90,16 +86,16 @@ class TestCopyLayer(DirectoryTestCase):
             return item['properties'][field] == value
         shapefile.copy_layer(
             self.shapefile, self.outfile, filter_function=filtr,
-            filter_kwargs={'field': 'number', 'value': 1})
+            filter_kwargs={'field': 'number', 'value': 0})
         with fiona.open(self.outfile) as collection:
             self.assertEqual(len(collection), 2)
             for item in collection:
-                self.assertIn(item['properties']['number'], [1, 3])
+                self.assertEqual(item['properties']['number'], 0)
 
     def test_limit(self):
         shapefile.copy_layer(self.shapefile, self.outfile, limit=2)
         with fiona.open(self.outfile) as res:
-            self.assertEqual(len([item for item in res]), 2)
+            self.assertEqual(len(res), 2)
 
 
 class TestCopyShp(DirectoryTestCase):

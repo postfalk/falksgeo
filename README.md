@@ -1,2 +1,2 @@
 # falksgeo
-Geo processing utilies to use in various projects
+Geo processing utilities for use in various projects
