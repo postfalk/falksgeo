@@ -78,7 +78,7 @@ def copy_layer(
 
 
 def copy_shp(
-    inputname, outputname, append=False, remap_function=None,
+    inputname, outputname, append=False, remap=None, remap_function=None,
     filter_function=None, fields=[], sort=[],
     reproject=None
 ):
@@ -91,6 +91,8 @@ def copy_shp(
     if append and os.path.isfile(outputname):
         edf = geopandas.read_file(outputname)
         df = edf.append(df)
+    if remap:
+        df = df.rename(columns=remap)
     if remap_function:
         # remap function might swallow crs
         crs = df.crs

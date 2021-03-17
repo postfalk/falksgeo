@@ -68,7 +68,7 @@ class TestCopyLayer(DirectoryTestCase):
             for field in ['two', 'five', 'six', 'number']:
                 self.assertNotIn(field, collection[3]['properties'])
 
-    def test_remap(self):
+    def test_remap_function(self):
         def remap(record):
             record['properties']['zwei'] = record['properties'].pop('two')
             return record
@@ -136,7 +136,7 @@ class TestCopyShp(DirectoryTestCase):
             for field in ['two', 'five', 'six', 'number']:
                 self.assertNotIn(field, collection[3]['properties'])
 
-    def test_remap(self):
+    def test_remap_function(self):
         def remap(row):
             row['zwei'] = row['two']
             del row['two']
@@ -149,6 +149,15 @@ class TestCopyShp(DirectoryTestCase):
             for field in fields:
                 self.assertIn(field, collection[4]['properties'])
             self.assertNotIn('two', collection[0]['properties'])
+
+
+    def test_remap(self):
+        shapefile.copy_shp(
+            self.shapefile, self.outfile, remap={'two': 'zwei'})
+        with fiona.open(self.outfile) as collection:
+            for item in collection:
+                print(item)
+
 
     def test_filtering(self):
         def filtr(row):
