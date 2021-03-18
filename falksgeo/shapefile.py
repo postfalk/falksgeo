@@ -93,7 +93,6 @@ def copy_shp(
         df = edf.append(df)
     if remap:
         df = df.rename(columns=remap)
-        print('AFTER', df)
     if remap_function:
         # remap function might swallow crs
         crs = df.crs

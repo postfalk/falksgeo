@@ -1,10 +1,10 @@
+# pylint:disable=C0103,C0114,C0115,C0116
+# standard library
+import logging
 import os
 import shutil
 from unittest import TestCase
-from falksgeo.files import ensure_directory
 
-
-import logging
 logging.basicConfig()
 logging.getLogger().setLevel(logging.CRITICAL)
 
@@ -21,7 +21,7 @@ class DirectoryTestCase(TestCase):
         pass
 
     def setUp(self):
-        ensure_directory(TEST_RES_DIR)
+        os.makedirs(TEST_RES_DIR, exist_ok=True)
         self.moreSetUp()
 
     def tearDown(self):

@@ -1,3 +1,4 @@
+# pylint:disable=E0401
 """
 Bootstrap, hash, and ensure data sources
 """
@@ -16,7 +17,6 @@ from tqdm import tqdm
 from .shapefile import gdb_to_shp, csv_to_shp
 from .earthengine import raster_download
 from .files import ensure_directory
-from . import bootstrap
 
 
 BLOCKSIZE = 65536
@@ -144,7 +144,7 @@ def check_or_create_files(
     source to local data directory.
     """
     if isinstance(create_function, str):
-        create_function=getattr(bootstrap, create_function)
+        create_function=globals()[create_function]
     if directory:
         ensure_directory(directory)
     hash_store_name=file_path + '.hashes.json'
@@ -155,7 +155,7 @@ def check_or_create_files(
         snippet = '\nAttempting creation of {}\nfrom {}\n'
         print(snippet.format(file_path, source_path))
         create_function(source_path, file_path, **create_kwargs)
-    if os.path.isfile(file_path):
+    if os.path.isfile(file_path) or os.path.isdir(file_path):
         print('{} AVAILABLE'.format(file_path))
     else:
         raise CreationError('{} MISSING'.format(file_path))
