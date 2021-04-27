@@ -32,7 +32,7 @@ if not gdal_version:
 
 setup(
     name='falksgeo',
-    version='0.1.1',
+    version='0.1.2',
     description='Geoprocessing functions to be used in projects',
     url='https://github.com/postfalk/falksgeo',
     author='Falk Schuetzenmeister',
@@ -42,7 +42,7 @@ setup(
     zip_safe=False,
     install_requires=[
         'gdal=={}'.format(gdal_version),
-        'numpy>=1.18,<1.19',
+        'numpy>=1.20',
         'pyproj>=3.0.1',
         'arcgis>=1.8',
         'geopandas>=0.9',
