@@ -199,8 +199,20 @@ def gdb_to_shp(source_path, dest_path, layer=None):
     with fiona.open(source_path, layer=layer) as collection:
         meta = collection.meta
         meta['driver'] = 'ESRI Shapefile'
+        print(meta['schema'])
+        # extract incompatible types from schema and convert to string
+        incompatible = []
+        fields = meta['schema']['properties']
+        for item in fields:
+            if fields[item] in ['datetime']:
+                fields[item] = 'str:255'
+                incompatible.append(item)
+        # print(incompatible)
         with fiona.open(dest_path, 'w', **meta) as shp:
             for item in collection:
+                for key in item:
+                    if key in incompatible:
+                        item[key] = str(item[key])
                 shp.write(item)
 
 
