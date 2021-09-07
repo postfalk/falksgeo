@@ -182,7 +182,6 @@ def annotate_file(infiles, outfile, index='comid'):
     annotationfile = infiles[1]
     df = geopandas.read_file(infile)
     df.set_index(index)
-    df[index] = df[index].apply(int)
     attributes = pd.read_csv(annotationfile, index_col=0)
     ndf = df.merge(attributes, on=index, how='left')
     ndf.to_file(outfile, driver='ESRI Shapefile')

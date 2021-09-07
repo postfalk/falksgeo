@@ -32,7 +32,7 @@ if not gdal_version:
 
 setup(
     name='falksgeo',
-    version='0.1.2',
+    version='0.1.3',
     description='Geoprocessing functions to be used in projects',
     url='https://github.com/postfalk/falksgeo',
     author='Falk Schuetzenmeister',

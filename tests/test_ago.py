@@ -3,17 +3,16 @@
 import logging
 from unittest import TestCase
 # project
-from falksgeo import arcgis
+# from falksgeo import arcgis
 
 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.CRITICAL)
 
 
-class TestGetGis(TestCase):
-
-    def test_get_gis(self):
-        gis = arcgis.get_gis(
-            'https://www.arcgis.com', 'arcgis_python', 'P@ssword123')
-        self.assertEqual(
-            str(gis), 'GIS @ https://geosaurus.maps.arcgis.com version:8.4')
+# class TestGetGis(TestCase):
+#
+#     gis = arcgis.get_gis(
+#        'https://www.arcgis.com', 'arcgis_python', 'P@ssword123')
+#        self.assertEqual(
+#            str(gis), 'GIS @ https://geosaurus.maps.arcgis.com version:8.4')
