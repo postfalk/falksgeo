@@ -46,7 +46,7 @@ setup(
         'pyproj>=3.0.1',
         'arcgis>=1.8',
         'geopandas>=0.9',
-        'earthengine-api>=0.1.256:',
+        'earthengine-api>=0.1.256',
         'oauth2client>=4.1.3',
         'rasterio>=1.2',
         'requests>=2.25',
