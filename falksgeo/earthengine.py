@@ -208,13 +208,11 @@ def merge(filelist, dest, nodata=-32768):
         print('No images to process')
 
 
-def image_to_cloud(
-        options, image=get_normalized_image(),
-        bucket=None, prefix=None, region=None
-):
+def image_to_cloud(options, image=None, bucket=None, prefix=None, region=None):
     """
     Implements recommended way of storing downloads into GCS
     """
+    image = get_normalized_image() if image is None else image
     # TODO: finalize
     # see https://github.com/google/earthengine-api/blob/master/python/ee/batch.py
     print('Send image to Google Cloud Storage')
@@ -230,14 +228,14 @@ def image_to_cloud(
     while task.status()['state'] not in {'COMPLETED', 'FAILED'}:
         print(datetime.now() - start, '\n', task.status(), '\n')
         sleep(2)
-    else:
-        print(task.status())
+    print(task.status())
 
 
 def raster_download(
     area_shape, dest_raster, dest='/tmp/', image_options={}, step=1,
-    image=get_normalized_image
-    ):
+    image=None
+):
+    image = get_normalized_image() if image is None else image
     files = download_parts(
         area_shape, image_options, step=step, clean=False,
         image=image, dest=dest)
