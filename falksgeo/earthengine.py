@@ -19,11 +19,12 @@ from falksgeo.files import ensure_directory
 from falksgeo.earthengine_examples import get_normalized_image
 
 
-def download_image(options, tmp_image, image=get_normalized_image()):
+def download_image(options, tmp_image, image=None):
     """
     Download the image from Google Earthengine
     """
     ee.Initialize()
+    image = get_normalized_image() if image is None else image
     print('Download started')
     path = image.getDownloadUrl(options)
     print(path)
@@ -144,18 +145,18 @@ def get_chunks(shp, step=1, map_file_path=None):
 
 
 def download_parts(
-        area, options, dest='/tmp/', step=1, image=get_normalized_image(),
-        clean=False
-    ):
+    area, options, dest='/tmp/', step=1, image=None, clean=False
+):
     """
     Download raster in chunks Google Earth Engine can handle
     """
+    image = get_normalized_image() if image is None else image
     ret = []
     ensure_directory(dest)
-    tile_map = os.path.join(dest, 'downloaded_tiles_{}.shp'.format(step))
+    tile_map = os.path.join(dest, f'downloaded_tiles_{step}.shp')
     tmp_zip = os.path.join(dest, 'tmp.zip')
     chunks = get_chunks(area, step, map_file_path=tile_map)
-    print('{} chunks to process'.format(len(chunks)))
+    print(f'{len(chunks)} chunks to process')
     for item in chunks:
         new_filename = generate_path(dest, item, step)
         ret.append(new_filename)
@@ -168,7 +169,7 @@ def download_parts(
                     filename = zipfile.extract(item, dest)
                     shutil.move(filename, new_filename)
         else:
-            print('{} ok'.format(new_filename))
+            print('{new_filename} ok')
     return ret
 
 

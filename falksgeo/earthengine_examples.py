@@ -1,14 +1,17 @@
+# pylint:disable=E0401
 """
 Some example EE images for test downloading
 """
+# standard library
 from datetime import datetime, timedelta
+# third party
 import ee
 
 
 def get_image():
     """
     Perform raster processing on Earthengine within this function and return
-    an Earthengine image object containing the result
+    an Earthengine image object containing the result.
     """
     ee.Initialize()
     print('\nCalculate image on EE')
@@ -20,6 +23,9 @@ def get_image():
 
 
 def add_time(image):
+    """
+    Add a band containing time.
+    """
     return image.addBands(
         image.metadata('system:time_start')
             .divide(1000 * 60 * 60 * 24))
@@ -76,5 +82,3 @@ def get_percentage_image():
             'ten_years_ago': ten_years_ago.timestamp()/60/60/24,
             'now': now.timestamp()/60/60/24,
             'offset': linear.select('offset')}).uint8()
-
-
