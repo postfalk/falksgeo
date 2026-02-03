@@ -1,11 +1,13 @@
+# pylint:disable=E0401
 """
-Utilities for shapefile manipulation
+Utilities for shapefile manipulation.
 """
 import os
 import re
 from collections import OrderedDict
 from copy import deepcopy
 from csv import DictReader
+from typing import Callable
 from zipfile import ZipFile
 import fiona
 from shapely.geometry import Point, mapping
@@ -18,20 +20,34 @@ from .filters import empty_filter
 from .pandas import concat_dataframes
 
 
-def select_fields(record, fields):
-    new_record = deepcopy(record)
+def select_fields(dic:dict, fields:list[str]) -> dict:
+    """
+    Reduce the fields in a record accoring to a list of fieldnames (keys).
+
+    Args:
+        record(dict): A dictionary.
+        files(list[str]): A list of fieldnames
+    Returns:
+        dict
+    """
+    new_dic = deepcopy(dic)
     if fields:
-        props = new_record.get('properties')
-        for item in record['properties']:
+        props = new_dic.get('properties')
+        for item in dic['properties']:
             if item not in fields:
                 props.pop(item)
-    return new_record
+    return new_dic
 
 
-def create_remap(attributes):
+def create_remap(attributes) -> Callable:
     """
     Create a mapping function from an attribute list and ensure compatible
     schema across input layers.
+
+    Args:
+        attributes(dict): A dictionary with keys.
+    Returns:
+        Callable
     """
 
     def remap(record):
@@ -50,69 +66,84 @@ def create_remap(attributes):
 # TODO: deprecate if the pandas based approach works well
 def copy_layer(
     inputname, outputname, append=False, remap_function=empty,
-    filter_function=empty_filter, filter_kwargs={},
+    filter_function=empty_filter, filter_kwargs=None,
     fields=None, layer=None, limit=None
 ):
     """
     Copy, remap, and filter a shapefile
     """
-    print(inputname, '=>', outputname)
+    filter_kwargs = filter_kwargs if filter_kwargs else {}
+    print(f'{inputname} => {outputname}')
     with fiona.open(inputname, layer=layer) as collection:
         percentage = PercentDisplay(collection, limit=limit)
         schema = remap_function(collection.schema.copy())
         schema = select_fields(schema.copy(), fields)
-        write_mode = 'a' if append else 'w'
-        args = write_mode, 'ESRI Shapefile', schema
-        with fiona.open(outputname, *args, crs=collection.crs) as output:
+        kwargs = {
+            'mode': 'a' if append else 'w',
+            'driver': 'ESRI Shapefile',
+            'schema': schema,
+            'crs': collection.crs}
+        with fiona.open(outputname, **kwargs) as output:
             for item in collection:
                 try:
                     percentage.inc()
                 except StopIteration:
                     break
+                # this is a little bit complicated but here for compatibility
+                # with the old library design and the new immuable fiona objects
+                geometry = item.geometry
+                item = {
+                    'properties': dict(item.properties)}
                 item = remap_function(item)
                 item = select_fields(item, fields)
-                if filter_function(item, **filter_kwargs):
-                    output.write(item)
+                new_item = fiona.Feature(
+                    geometry=geometry,
+                    properties=fiona.Properties.from_dict(
+                        item.get('properties')))
+                if filter_function(new_item, **filter_kwargs):
+                    output.write(new_item)
         percentage.display()
-    print('\n{} generated\n'.format(outputname))
+    print(f'\n{outputname} generated\n')
 
 
 def copy_shp(
     inputname, outputname, append=False, remap=None, remap_function=None,
-    filter_function=None, fields=[], sort=[],
+    filter_function=None, fields=None, sort=None,
     reproject=None
 ):
     """
     Copy, remap, and filter a shapefile using GeoPandas
     """
+    fields = fields if fields else []
+    sort = sort if sort else []
     fields = fields.copy()
-    print(inputname, '=>', outputname)
+    print(f'{inputname} => {outputname}')
     df = geopandas.read_file(inputname)
     if append and os.path.isfile(outputname):
         edf = geopandas.read_file(outputname)
-        df = edf.append(df)
+        df = pd.concat([df, edf], ignore_index=True)
     if remap:
         df = df.rename(columns=remap)
     if remap_function:
         # remap function might swallow crs
         crs = df.crs
         df = df.apply(remap_function, axis=1)
-        df.crs = crs
+        df.set_crs(crs)
     if filter_function:
         df = df[df.apply(filter_function, axis=1, result_type='reduce')]
     if sort:
         df.sort_values(by=sort, inplace=True)
         df.reset_index(drop=True, inplace=True)
     if fields:
-        if not 'geometry' in fields:
+        if 'geometry' not in fields:
             fields.append('geometry')
         df = df[fields]
     if isinstance(reproject, int):
-        reproject = {'init': 'epsg:{}'.format(reproject)}
+        reproject = f'epsg:{reproject}'
     if reproject:
         df = df.to_crs(reproject)
     df.to_file(outputname, driver='ESRI Shapefile')
-    print('\n{} generated\n'.format(outputname))
+    print(f'\n{outputname} generated\n')
 
 
 @print_docstring
@@ -159,8 +190,7 @@ def merge_layers(input_layers, outputfile, remap=empty, debug=False):
         copy_layer(layer, outputfile, **kwargs, debug=debug)
 
 
-# TODO: review
-def annotate(infile, annotation_files, outfile, index='comid', use=[]):
+def annotate(infile, annotation_files, outfile, index='comid', use=None):
     """
     Annotate additional properties using GeoPandas
     """

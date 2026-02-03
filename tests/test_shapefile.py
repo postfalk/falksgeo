@@ -1,10 +1,14 @@
-# pylint:disable=C0114,C0115,C0116,C0103
+# pylint:disable=C0114,C0115,C0116,C0103,E0401
+# standard library
+from copy import deepcopy
 import os
 import random
 import string
 from zipfile import ZipFile
+# third party
 import fiona
-import fiona.crs
+from pyproj import CRS
+# project
 from falksgeo import shapefile
 from .base import DirectoryTestCase, TEST_RES_DIR
 
@@ -13,7 +17,7 @@ def create_shapefile(name='test.shp', rows=5, columns=6):
     """
     Create a shapefile for tests
     """
-    crs = fiona.crs.from_epsg(3310)
+    crs = CRS.from_epsg(3310)
     cols = ['one', 'two', 'THREE', 'four', 'five', 'six'][0:columns]
     schema = {'geometry': 'Point', 'properties': {k: 'str' for k in cols}}
     schema['properties']['number'] = 'int'
@@ -75,9 +79,11 @@ class TestCopyLayer(DirectoryTestCase):
                 self.assertNotIn(field, collection[3]['properties'])
 
     def test_remap_function(self):
+
         def remap(record):
             record['properties']['zwei'] = record['properties'].pop('two')
             return record
+
         shapefile.copy_layer(
              self.shapefile, self.outfile, remap_function=remap)
         with fiona.open(self.outfile) as collection:
@@ -216,8 +222,9 @@ class TestAnnotateFile(DirectoryTestCase):
         self.outfile = os.path.join(TEST_RES_DIR, 'out.shp')
         create_shapefile(self.infile)
         self.csv = os.path.join(TEST_RES_DIR, 'annotations.csv')
-        with open(self.csv, 'w') as csv:
-            csv.write('number,value,name\n0,sad,zero\n1,solala,one\n2,happy,two')
+        with open(self.csv, 'w', encoding='utf-8') as csv:
+            csv.write(
+                'number,value,name\n0,sad,zero\n1,solala,one\n2,happy,two')
 
     def test_annotate_file(self):
         shapefile.annotate_file(
@@ -245,7 +252,7 @@ class TestCSVToShapefile(DirectoryTestCase):
     def moreSetUp(self):
         self.csv_fn = os.path.join(TEST_RES_DIR, 'test.csv')
         self.shp_fn = os.path.join(TEST_RES_DIR, 'res.shp')
-        with open(self.csv_fn, 'w') as csv:
+        with open(self.csv_fn, 'w', encoding='utf-8') as csv:
             csv.write('name,x,y\nlittle house,-125,25\nbig house,-125.1,25')
 
     def test_csv_to_shapefile(self):

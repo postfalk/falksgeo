@@ -14,8 +14,6 @@ from tqdm import tqdm
 # project
 # these imports make it possible to refer to them in
 # configuration files by name without import
-from .shapefile import gdb_to_shp, csv_to_shp
-from .earthengine import raster_download
 from .files import ensure_directory
 
 
@@ -23,18 +21,21 @@ BLOCKSIZE = 65536
 
 
 class CreationError(Exception):
-    pass
+    """
+    A project specific Exception for resource creation failure
+    """
 
 
 def get_from_tuple(tpl, idx):
     """
     Helper function that allows for non_existing tuple indexes (will
-    return None)
+    return None).
     """
     try:
         return tpl[idx]
     except IndexError:
         pass
+    return None
 
 
 def copy_tree(source_name, dest, **kwargs):

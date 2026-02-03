@@ -19,11 +19,11 @@ from falksgeo.files import ensure_directory
 from falksgeo.earthengine_examples import get_normalized_image
 
 
-def download_image(options, tmp_image, image=None):
+def download_image(options, tmp_image, image=None, project=None):
     """
     Download the image from Google Earthengine
     """
-    ee.Initialize()
+    ee.Initialize(project=project)
     image = get_normalized_image() if image is None else image
     print('Download started')
     path = image.getDownloadUrl(options)
