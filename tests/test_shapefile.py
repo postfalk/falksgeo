@@ -1,6 +1,5 @@
 # pylint:disable=C0114,C0115,C0116,C0103,E0401
 # standard library
-from copy import deepcopy
 import os
 import random
 import string
@@ -80,7 +79,8 @@ class TestCopyLayer(DirectoryTestCase):
 
     def test_remap_function(self):
 
-        def remap(record):
+        def remap(record, schema=False):
+            del schema
             record['properties']['zwei'] = record['properties'].pop('two')
             return record
 

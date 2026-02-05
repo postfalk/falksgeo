@@ -50,7 +50,18 @@ def create_remap(attributes) -> Callable:
         Callable
     """
 
-    def remap(record):
+    def remap(record:dict, schema:bool=False) -> dict:
+        """
+        An example renap function.
+
+        Args:
+            record(dict): A GeoJSON or a Fiona schema dict
+            schema(bool): Flag indicating that a schema is remapped, only
+                needed when new fields are created.
+        Returns:
+            dict
+        """
+        del schema
         new_record = OrderedDict([
             ('geometry', record['geometry']), ('properties', OrderedDict())])
         for item in record['properties']:
@@ -76,7 +87,7 @@ def copy_layer(
     print(f'{inputname} => {outputname}')
     with fiona.open(inputname, layer=layer) as collection:
         percentage = PercentDisplay(collection, limit=limit)
-        schema = remap_function(collection.schema.copy())
+        schema = remap_function(collection.schema.copy(), schema=True)
         schema = select_fields(schema.copy(), fields)
         kwargs = {
             'mode': 'a' if append else 'w',
@@ -92,8 +103,7 @@ def copy_layer(
                 # this is a little bit complicated but here for compatibility
                 # with the old library design and the new immuable fiona objects
                 geometry = item.geometry
-                item = {
-                    'properties': dict(item.properties)}
+                item = {'properties': dict(item.properties)}
                 item = remap_function(item)
                 item = select_fields(item, fields)
                 new_item = fiona.Feature(

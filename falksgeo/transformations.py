@@ -1,8 +1,6 @@
 """
 Diverse mapping functions in support of tools
 """
-
-from collections import OrderedDict
 import re
 
 
@@ -20,10 +18,11 @@ def camel_to_snake(s):
     return _underscorer2.sub(r'\1_\2', subbed).lower()
 
 
-def empty(item):
+def empty(item:dict, schema:bool=False) -> dict:
     """
     Placeholder function to pass along instead of transformations
     """
+    del schema
     return item
 
 
