@@ -74,7 +74,6 @@ def create_remap(attributes) -> Callable:
 
 
 @print_docstring
-# TODO: deprecate if the pandas based approach works well
 def copy_layer(
     inputname, outputname, append=False, remap_function=empty,
     filter_function=empty_filter, filter_kwargs=None,

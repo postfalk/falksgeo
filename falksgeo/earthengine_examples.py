@@ -13,11 +13,10 @@ def get_image():
     Perform raster processing on Earthengine within this function and return
     an Earthengine image object containing the result.
     """
-    ee.Initialize()
     print('\nCalculate image on EE')
     date_range = ['2000-01-01', '2020-01-01']
     ndvi_layer = (
-        ee.ImageCollection('LANDSAT/LC8_L1T_8DAY_NDVI')
+        ee.ImageCollection('LANDSAT/COMPOSITES/C02/T1_L2_8DAY_NDVI')
           .filterDate(*date_range).reduce(ee.Reducer.mean())).multiply(255)
     return ndvi_layer
 
@@ -32,14 +31,13 @@ def add_time(image):
 
 
 def get_slope_image():
-    ee.Initialize()
     now = datetime.now()
     ten_years_ago = now - timedelta(days=3652)
     collection1 = ee.ImageCollection(
-        'LANDSAT/LC8_L1T_8DAY_NDVI').filterDate(
+        'LANDSAT/COMPOSITES/C02/T1_L2_8DAY_NDVI').filterDate(
         ee.Date(ten_years_ago), ee.Date(now))
     collection2 = ee.ImageCollection(
-        'LANDSAT/LT5_L1T_8DAY_NDVI').filterDate(
+        'LANDSAT/COMPOSITES/C02/T1_L2_8DAY_NDVI').filterDate(
         ee.Date(ten_years_ago), ee.Date(now))
     merged = collection2.merge(collection1).map(add_time)
     return merged.select(
@@ -64,7 +62,6 @@ def get_normalized_image():
 
 
 def get_percentage_image():
-    ee.Initialize()
     now = datetime.now()
     ten_years_ago = now - timedelta(days=3652)
     collection1 = ee.ImageCollection(

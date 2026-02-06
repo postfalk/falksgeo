@@ -1,11 +1,10 @@
-from decimal import Decimal
+# pylint:disable=C0114,C0115,C0116,E0401
 import os
 from zipfile import ZipFile
 from affine import Affine
 import fiona
 import rasterio
 from falksgeo import earthengine
-from falksgeo.files import ensure_directory
 from .base import DirectoryTestCase, TEST_RES_DIR, TEST_DATA_DIR
 
 
@@ -96,7 +95,7 @@ class TestHelpers(DirectoryTestCase):
         with ZipFile(zipfilename, 'w') as zip:
             for filename in ['test1.tif', 'test2.tif', 'test3.csv']:
                 path = os.path.join(TEST_RES_DIR, filename)
-                with open(path, 'w') as f:
+                with open(path, 'w', encoding='utf-8') as f:
                     f.write('something')
                 zip.write(path, os.path.basename(path))
         with ZipFile(zipfilename) as zip:
@@ -107,7 +106,7 @@ class TestHelpers(DirectoryTestCase):
 
     def test_new_profile(self):
         files_to_merge=[
-            os.path.join(TEST_DATA_DIR, 'raster{}.tif'.format(ind))
+            os.path.join(TEST_DATA_DIR, f'raster{ind}.tif')
             for ind in range(1, 4)]
         files = [rasterio.open(fn) for fn in files_to_merge]
         res = earthengine.new_profile(files)
@@ -125,7 +124,6 @@ class TestDownloadParts(DirectoryTestCase):
         generate_shp_file(self.shp)
 
     def test_download_parts(self):
-        #TODO: use mocks here to speed tests up
         options = {'scale': 30, 'crs': 'EPSG:4326', 'region': None}
         res = earthengine.download_parts(
             self.shp, options, dest=TEST_RES_DIR, step=0.006)
@@ -138,7 +136,7 @@ class TestMerge(DirectoryTestCase):
 
     def test_merge(self):
         files_to_merge=[
-            os.path.join(TEST_DATA_DIR, 'raster{}.tif'.format(ind))
+            os.path.join(TEST_DATA_DIR, f'raster{ind}.tif')
             for ind in range(1, 4)]
         dest = os.path.join(TEST_RES_DIR, 'raster.tif')
         earthengine.merge(files_to_merge, dest)

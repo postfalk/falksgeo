@@ -1,7 +1,11 @@
-# pylint:disable=C0103,C0114,C0115,C0116,R0201,W0511
+# pylint:disable=C0103,C0114,C0115,C0116,W0511,E0401
+# standard library
 import os
 from time import sleep
+from copy import copy
+# third party
 import fiona
+# local
 from falksgeo import bootstrap
 from falksgeo.files import ensure_directory
 from .base import DirectoryTestCase, TEST_RES_DIR
@@ -21,7 +25,7 @@ class TestCheckOrCreateFile(DirectoryTestCase):
 
     def moreSetUp(self):
         ensure_directory(TEST_A_DIR)
-        with open(TEST_FILENAME, 'w') as handle:
+        with open(TEST_FILENAME, 'w', encoding='utf-8') as handle:
             handle.write('0,0,0,0')
 
     def test_copy_tree(self):
@@ -37,16 +41,16 @@ class TestHashing(DirectoryTestCase):
 
     def moreSetUp(self):
         ensure_directory(TEST_A_DIR)
-        with open(TEST_FILENAME, 'w') as tf:
+        with open(TEST_FILENAME, 'w', encoding='utf-8') as tf:
             tf.write('0,0,0,0')
-        with open(ANOTHER_TEST_FILENAME, 'w') as tf:
+        with open(ANOTHER_TEST_FILENAME, 'w', encoding='utf-8') as tf:
             tf.write('bla')
 
     def test_hash_file(self):
         self.assertEqual(
             bootstrap.hash_file(TEST_FILENAME),
             '886364986cd9a5c816240f0512f36bee')
-        with open(TEST_FILENAME, 'a') as fil:
+        with open(TEST_FILENAME, 'a', encoding='utf-8') as fil:
             fil.write('test')
         # make sure we hash the content and not the filename
         self.assertEqual(
@@ -70,17 +74,22 @@ class TestHashing(DirectoryTestCase):
             args = TEST_SHAPEFILE_1, 'w', 'ESRI Shapefile', schema
             with fiona.open(*args) as new_collection:
                 for item in collection:
-                    item['properties']['test'] = 'dog'
-                    new_collection.write(item)
+                    new_item = fiona.Feature(
+                        geometry = copy(item.geometry),
+                        properties = fiona.Properties.from_dict({'test': 'dog'})
+                    )
+                    new_collection.write(new_item)
         # for a working hash algorithm that should be not equal!
         self.assertEqual(myhash, bootstrap.hash_file(TEST_SHAPEFILE_1))
         with fiona.open(TEST_SHAPEFILE) as collection:
             args = TEST_SHAPEFILE_1, 'w', 'ESRI Shapefile', schema
             with fiona.open(*args) as new_collection:
                 for item in collection:
-                    item['geometry'] = {
-                        'type': 'Point', 'coordinates': [3, 3]}
-                    new_collection.write(item)
+                    new_item = fiona.Feature(
+                        geometry = fiona.Geometry.from_dict({
+                            'type': 'Point', 'coordinates': [3, 3]}),
+                        properties = copy(item.properties))
+                    new_collection.write(new_item)
         self.assertNotEqual(myhash, bootstrap.hash_file(TEST_SHAPEFILE_1))
 
 
@@ -92,9 +101,9 @@ class TestChangeTracking(DirectoryTestCase):
         except FileNotFoundError:
             pass
         ensure_directory(TEST_A_DIR)
-        with open(TEST_FILENAME, 'w') as handle:
+        with open(TEST_FILENAME, 'w', encoding='utf-8') as handle:
             handle.write('0,0,0,0')
-        with open(ANOTHER_TEST_FILENAME, 'w') as handle:
+        with open(ANOTHER_TEST_FILENAME, 'w', encoding='utf-8') as handle:
             handle.write('bla')
         schema = {'geometry': 'Point', 'properties': {'test': 'str'}}
         args = TEST_SHAPEFILE, 'w', 'ESRI Shapefile', schema
@@ -152,7 +161,7 @@ class TestChangeTracking(DirectoryTestCase):
             TEST_FILENAME, hash_store_name=TEST_HASH_STORE))
         self.assertFalse(bootstrap.check_source_changes(
             TEST_FILENAME, hash_store_name=TEST_HASH_STORE))
-        with open(TEST_FILENAME, 'a') as fil:
+        with open(TEST_FILENAME, 'a', encoding='utf-8') as fil:
             fil.write('ha')
         self.assertTrue(bootstrap.check_source_changes(
             TEST_FILENAME, hash_store_name=TEST_HASH_STORE))
@@ -166,7 +175,7 @@ class TestChangeTracking(DirectoryTestCase):
         self.assertFalse(bootstrap.check_source_changes(
             test_list, hash_store_name=TEST_HASH_STORE))
         sleep(1)
-        with open(ANOTHER_TEST_FILENAME, 'w') as fil:
+        with open(ANOTHER_TEST_FILENAME, 'w', encoding='utf-8') as fil:
             fil.write('hello world')
         self.assertTrue(bootstrap.check_source_changes(
             test_list, hash_store_name=TEST_HASH_STORE))
