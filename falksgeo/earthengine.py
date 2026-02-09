@@ -1,3 +1,4 @@
+# pylint:disable=E0401
 import os
 from datetime import datetime
 from functools import reduce
@@ -5,6 +6,7 @@ from itertools import product
 import re
 import shutil
 from time import sleep
+from typing import Any, Generator, Optional
 from zipfile import ZipFile
 from affine import Affine
 import ee
@@ -19,7 +21,7 @@ from falksgeo.files import ensure_directory
 from falksgeo.earthengine_examples import get_normalized_image
 
 
-def download_image(options, tmp_image, image=None, project=None):
+def download_image(options: dict, tmp_image: str, image: Optional[Any] = None, project: Optional[str] = None) -> None:
     """
     Download the image from Google Earthengine
     """
@@ -41,7 +43,7 @@ def download_image(options, tmp_image, image=None, project=None):
                 handle.write(chunk)
 
 
-def floatrange(start, stop, step):
+def floatrange(start: float, stop: float, step: float) -> Generator[float, None, None]:
     """
     Range function for float type, see:
     https://www.pythoncentral.io/pythons-range-function-explained/
@@ -54,31 +56,31 @@ def floatrange(start, stop, step):
         i += step
 
 
-def get_tif_files(zipfile):
+def get_tif_files(zipfile: ZipFile) -> list[str]:
     return [
         item for item in zipfile.namelist()
         if re.match('^.*\.tif$', item)]
 
 
-def generate_stitch_directory(path, step):
+def generate_stitch_directory(path: str, step: float) -> str:
     directory = os.path.join(path, str(step).replace('.', '_'))
     ensure_directory(directory)
     return directory
 
 
-def generate_filename(coords):
+def generate_filename(coords: list) -> str:
     return 'EE_{}_{}.tif'.format(
         str(coords[0][0]).replace('-', 'w')[0:8],
         str(coords[0][1]).replace('-', 's')[0:8])
 
 
-def generate_path(path, coords, step):
+def generate_path(path: str, coords: list, step: float) -> str:
     directory = generate_stitch_directory(path, step)
     name = generate_filename(coords)
     return os.path.join(directory, name)
 
 
-def region_from_shape(shapefilename):
+def region_from_shape(shapefilename: str) -> list:
     """
     Returns bbox from shape in EE format
     """
@@ -93,7 +95,7 @@ def region_from_shape(shapefilename):
         return transformed['coordinates'][0][:-1]
 
 
-def chunks_from_region(region, step=0.02):
+def chunks_from_region(region: list, step: float = 0.02) -> list:
     min_x = reduce(lambda a,b: a if a < b[0] else b[0], region, 180)
     min_y = reduce(lambda a,b: a if a < b[1] else b[1], region, 90)
     max_x = reduce(lambda a,b: a if a > b[0] else b[0], region, -180)
@@ -107,7 +109,7 @@ def chunks_from_region(region, step=0.02):
     return ret
 
 
-def chunk_filter(chunks, shapefilename, map_file_path=None):
+def chunk_filter(chunks: list, shapefilename: str, map_file_path: Optional[str] = None) -> list:
     """
     Filter chunks by the first feature of a shapefile and
     store chunk map to disk if map_file_name is provided.
@@ -127,7 +129,7 @@ def chunk_filter(chunks, shapefilename, map_file_path=None):
     return ret
 
 
-def chunks_to_shapefile(chunks, shapefilename):
+def chunks_to_shapefile(chunks: list, shapefilename: str) -> None:
     """
     Include this here for convenience and coverage evaluation
     """
@@ -141,15 +143,15 @@ def chunks_to_shapefile(chunks, shapefilename):
                     'rasterfile': generate_filename(item)}})
 
 
-def get_chunks(shp, step=1, map_file_path=None):
+def get_chunks(shp: str, step: int = 1, map_file_path: Optional[str] = None) -> list:
     region = region_from_shape(shp)
     chunks = chunks_from_region(region, step=step)
     return chunk_filter(chunks, shp, map_file_path=map_file_path)
 
 
 def download_parts(
-    area, options, dest='/tmp/', step=1, image=None, clean=False
-):
+    area: str, options: dict, dest: str = '/tmp/', step: int = 1, image: Optional[Any] = None, clean: bool = False
+) -> list:
     """
     Download raster in chunks Google Earth Engine can handle
     """
@@ -168,15 +170,15 @@ def download_parts(
             download_image(options, tmp_zip, image)
             with ZipFile(tmp_zip) as zipfile:
                 tif = get_tif_files(zipfile)
-                for item in tif:
-                    filename = zipfile.extract(item, dest)
+                for tif_file in tif:
+                    filename = zipfile.extract(tif_file, dest)
                     shutil.move(filename, new_filename)
         else:
-            print('{new_filename} ok')
+            print(f'{new_filename} ok')
     return ret
 
 
-def new_profile(files):
+def new_profile(files: list) -> dict:
     """
     Determine new profile value from list of input files
     """
@@ -192,11 +194,10 @@ def new_profile(files):
     return profile
 
 
-def merge(filelist, dest, nodata=-32768):
+def merge(filelist: list, dest: str, nodata: int = -32768) -> None:
     files = [rasterio.open(fil) for fil in filelist]
     if files:
         profile = new_profile(files)
-        newprofile = new_profile(files)
         new_raster = rasterio.merge.merge(files, nodata=nodata)
         profile['height'] = new_raster[0].shape[1]
         profile['width'] = new_raster[0].shape[2]
@@ -211,7 +212,7 @@ def merge(filelist, dest, nodata=-32768):
         print('No images to process')
 
 
-def image_to_cloud(options, image=None, bucket=None, prefix=None, region=None):
+def image_to_cloud(options: dict, image: Optional[Any] = None, bucket: Optional[str] = None, prefix: Optional[str] = None, region: Optional[Any] = None) -> None:
     """
     Implements recommended way of storing downloads into GCS
     """
@@ -235,9 +236,11 @@ def image_to_cloud(options, image=None, bucket=None, prefix=None, region=None):
 
 
 def raster_download(
-    area_shape, dest_raster, dest='/tmp/', image_options={}, step=1,
-    image=None
-):
+    area_shape: str, dest_raster: str, dest: str = '/tmp/', image_options: Optional[dict] = None, step: int = 1,
+    image: Optional[Any] = None
+) -> None:
+    if image_options is None:
+        image_options = {}
     image = get_normalized_image() if image is None else image
     files = download_parts(
         area_shape, image_options, step=step, clean=False,
