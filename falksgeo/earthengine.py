@@ -26,9 +26,6 @@ def download_image(options: dict, tmp_image: str, image: Optional[Any] = None, p
     Download the image from Google Earthengine
     """
     ee.Initialize(project=project)
-    if os.path.isfile(tmp_image):
-        print(f'{tmp_image} exist. Download skipped.')
-        return
     image = get_normalized_image() if image is None else image
     print('Download started')
     path = image.getDownloadUrl(options)
@@ -150,10 +147,11 @@ def get_chunks(shp: str, step: int = 1, map_file_path: Optional[str] = None) -> 
 
 
 def download_parts(
-    area: str, options: dict, dest: str = '/tmp/', step: int = 1, image: Optional[Any] = None, clean: bool = False
+    area:str, options:dict, dest:str = '/tmp/', step:int = 1,
+    image:Optional[Any] = None, clean:bool = False
 ) -> list:
     """
-    Download raster in chunks Google Earth Engine can handle
+    Download a raster in chunks Google Earth Engine can handle
     """
     image = get_normalized_image() if image is None else image
     ret = []
@@ -173,8 +171,9 @@ def download_parts(
                 for tif_file in tif:
                     filename = zipfile.extract(tif_file, dest)
                     shutil.move(filename, new_filename)
+            print(f'{new_filename} created')
         else:
-            print(f'{new_filename} ok')
+            print(f'{new_filename} exists')
     return ret
 
 
