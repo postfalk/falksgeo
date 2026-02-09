@@ -24,6 +24,9 @@ def download_image(options, tmp_image, image=None, project=None):
     Download the image from Google Earthengine
     """
     ee.Initialize(project=project)
+    if os.path.isfile(tmp_image):
+        print(f'{tmp_image} exist. Download skipped.')
+        return
     image = get_normalized_image() if image is None else image
     print('Download started')
     path = image.getDownloadUrl(options)
